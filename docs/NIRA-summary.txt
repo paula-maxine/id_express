@@ -1,0 +1,261 @@
+
+? COMPLETE FEATURE SET FOR THE NIRA MOBILE REGISTRATION APPLICATION
+
+1?? CORE FUNCTIONAL FEATURES
+1. User Authentication & Access Control
+* Secure login for:
+o Registration Officers
+o Supervisors/Admin
+* Role-Based Access Control (RBAC)
+* Secure session management
+* Logout functionality
+* Password validation rules
+* Account management (admin-controlled)
+
+2. Applicant Pre-Registration Module
+* Capture demographic details:
+o Full name
+o Date of birth
+o Gender
+o Address
+o Parent/guardian details (if required)
+* Nationality details
+* Required form validation
+* Guided form completion
+* Error highlighting for incomplete fields
+* Data preview before submission
+* Generate tracking reference number
+
+3. Document Upload & Management
+* Upload required documents:
+o Birth certificate
+o Passport photos (if applicable)
+o Supporting documents
+* File validation (size/type)
+* Document preview
+* Officer-side document verification
+* Flagging of incomplete or invalid documents
+
+4. Appointment / Queue Management
+* Book registration appointment
+* Select service centre
+* Select date and time
+* Generate digital queue token
+* Notify applicant of appointment confirmation
+* Reschedule or cancel appointment
+* Officer view of daily appointment list
+
+5. Officer Verification Module
+* Officer reviews submitted applications
+* Approve for biometric capture
+* Reject with reason
+* Flag missing data
+* Edit demographic details (with audit trail)
+* Mark readiness for biometric stage
+
+6. Offline Data Capture (Offline-First Design)
+* Full functionality without internet
+* Local encrypted storage (SQLite or secure storage)
+* Queue unsent submissions
+* Auto-sync when connectivity returns
+* Conflict resolution handling
+* Zero data loss during offline capture
+
+7. Synchronisation Engine
+* Background sync service
+* Retry mechanism for failed uploads
+* Sync progress indicator
+* Auto-delete local cache after successful upload
+* Duplicate detection on server side
+
+8. Application Status Tracking
+* Applicant can view:
+o Submitted
+o Under Review
+o Approved
+o Biometric Pending
+o Card Ready
+o Rejected
+* Status notifications
+* Push/SMS/Email alerts (if implemented)
+
+9. Audit Trail & Logging
+* Log all major actions:
+o Login attempts
+o Data edits
+o Approvals/rejections
+o Sync activities
+* Timestamped logs
+* User ID tracking
+* Tamper-resistant logs
+* Supervisor access to audit logs
+
+?? Admin Module (Optional but Recommended)
+* Manage user accounts
+* Assign roles
+* View reports
+* System activity monitoring
+* Data export (restricted)
+* Deactivate users
+
+2?? SECURITY FEATURES (HIGH-ASSURANCE SYSTEM)
+Because this is a national ID system, security is critical.
+1. Encryption
+* TLS encryption for data in transit
+* AES-256 encryption for data at rest
+* Encrypted local device storage
+
+2. Role-Based Access Control (RBAC)
+* Clearly defined roles:
+o Applicant
+o Officer
+o Supervisor
+o Admin
+* Least-privilege principle
+* No cross-role data leakage
+
+3. Strong Authentication
+* Secure password policy
+* Optional OTP / MFA (if feasible)
+* Device binding for officers (optional advanced feature)
+
+4. Privacy-by-Design Features
+* Collect only required data
+* Clear privacy notice
+* Consent acknowledgement
+* Auto-delete local cache after sync
+* Data minimisation
+* No unnecessary data exposure on screen
+
+5. Threat Mitigation Controls (STRIDE Model)
+ThreatMitigationSpoofingStrong login, MFATamperingServer validation, integrity checksRepudiationAudit logsInformation disclosureEncryption, masked dataDenial of ServiceRetry/backoff, rate limitingPrivilege escalationStrict RBAC
+3?? PERFORMANCE & RELIABILITY FEATURES
+1. Performance
+* Home screen loads within defined time (e.g., = 3 seconds)
+* Fast form transitions
+* Optimised for mid-range smartphones
+* Lightweight application size
+
+2. Reliability
+* Zero data loss in offline mode
+* Backup of unsent transactions
+* Graceful failure handling
+* Crash recovery protection
+
+4?? USABILITY FEATURES
+1. High Usability Standards
+* Clean UI
+* Guided step-by-step forms
+* Clear labels
+* Minimal technical language
+* Field auto-validation
+* Simple navigation
+* Accessibility considerations
+
+2. Usability Evaluation Support
+* Designed to achieve:
+o High System Usability Scale (SUS) score
+o High task success rate
+* Supports evaluation via:
+o SUS questionnaires
+o TAM / UTAUT acceptance surveys
+
+5?? SYSTEM ARCHITECTURE FEATURES
+1. Three-Tier Architecture
+* Mobile Client (Applicant & Officer modules)
+* API Server Layer
+* Secure Database Layer
+
+2. API Layer
+* Authentication endpoints
+* Application submission endpoints
+* Sync endpoints
+* Status update endpoints
+* Audit logging endpoints
+
+3. Database Design Must Include Entities:
+* User
+* Role
+* Application
+* Document
+* BiometricCaptureStatus
+* AuditLog
+
+6?? TESTING FEATURES
+The system must support:
+* Unit testing
+* Integration testing
+* User Acceptance Testing (UAT)
+Must include test cases for:
+* Valid login
+* Invalid login
+* Form validation
+* Offline submission
+* Sync functionality
+* Status updates
+
+7?? EVALUATION FEATURES
+The system must support evaluation in terms of:
+1. Efficiency
+* Reduced processing time
+* Reduced incomplete submissions
+* Reduced manual corrections
+2. Usability
+* SUS scoring support
+3. Acceptance
+* Perceived usefulness
+* Ease of use
+* Behavioural intention
+4. Security Compliance Checklist
+* Encryption implemented
+* RBAC implemented
+* Audit logging enabled
+* Local retention minimised
+
+8?? COMPLIANCE FEATURES (LEGAL & REGULATORY)
+Must align with:
+* Registration of Persons Act
+* Data Protection and Privacy Act
+Must:
+* Protect personal data
+* Ensure lawful processing
+* Maintain confidentiality
+* Ensure accountability
+
+9?? OPERATIONAL SUPPORT FEATURES
+* Officer training support
+* Change management support
+* Phased deployment capability
+* Pilot deployment readiness
+* Interoperability planning with existing NIRA systems
+
+?? FUTURE-READY FEATURES
+Recommended for scalability:
+* Multilingual support
+* Biometric device integration readiness
+* API interoperability for government systems
+* Expanded district rollout capability
+* Advanced security testing readiness
+
+?? FINAL SUMMARY
+The mobile application must include:
+? Secure authentication
+? Role-based access control
+? Applicant pre-registration
+? Document upload & validation
+? Appointment booking
+? Officer verification tools
+? Offline-first functionality
+? Secure synchronisation
+? Application tracking
+? Audit logging
+? Strong encryption
+? Privacy-by-design controls
+? Performance optimisation
+? Usability optimisation
+? System testing framework
+? Evaluation support (SUS, TAM)
+? Legal compliance
+? Deployment readiness
+
+
