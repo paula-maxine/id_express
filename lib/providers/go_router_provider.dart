@@ -1,10 +1,18 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:id_express/screens/signup_screen.dart';
 import '../routes/paths.dart';
 import '../routes/error_page.dart';
 import '../providers/auth_provider.dart';
+import '../screens/login_screen.dart';
+import '../screens/home_screen.dart';
 import '../screens/splash/splash_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
+import '../screens/applicant/applicant_dashboard.dart';
+import '../screens/officer/officer_dashboard.dart';
+import '../screens/admin/admin_dashboard.dart';
+import '../screens/settings/settings_screen.dart';
+import '../screens/settings/privacy_policy_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -56,6 +64,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
+        path: RoutesPaths.home,
+        builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
         path: RoutesPaths.splash,
         builder: (context, state) => const SplashScreen(),
       ),
@@ -67,35 +79,34 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RoutesPaths.signup,
         builder: (context, state) => const SignupScreen(),
       ),
-      // TODO: Add ForgotPasswordScreen when implemented
       GoRoute(
         path: RoutesPaths.forgotPassword,
-        builder: (context, state) => const Placeholder(),
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
-      // Applicant dashboard: use UploadScreen as placeholder for now
+      // Applicant dashboard
       GoRoute(
         path: RoutesPaths.applicantDashboard,
-        builder: (context, state) => const UploadScreen(),
+        builder: (context, state) => const ApplicantDashboard(),
       ),
-      // Officer dashboard placeholder
+      // Officer dashboard
       GoRoute(
         path: RoutesPaths.officerDashboard,
-        builder: (context, state) => const Placeholder(),
+        builder: (context, state) => const OfficerDashboard(),
       ),
-      // Admin dashboard placeholder
+      // Admin dashboard
       GoRoute(
         path: RoutesPaths.adminDashboard,
-        builder: (context, state) => const Placeholder(),
+        builder: (context, state) => const AdminDashboard(),
       ),
-      // Settings placeholder
+      // Settings
       GoRoute(
         path: RoutesPaths.settings,
-        builder: (context, state) => const Placeholder(),
+        builder: (context, state) => const SettingsScreen(),
       ),
-      // Privacy policy placeholder
+      // Privacy policy
       GoRoute(
         path: RoutesPaths.privacyPolicy,
-        builder: (context, state) => const Placeholder(),
+        builder: (context, state) => const PrivacyPolicyScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

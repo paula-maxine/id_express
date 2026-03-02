@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../routes/paths.dart';
 
 import '../services/auth_service.dart';
-import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
-  
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -38,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/upload');
+        context.go(RoutesPaths.home);
       }
     } catch (e) {
       setState(() {
@@ -56,10 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ID Express'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('ID Express'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -68,10 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 40),
             const Text(
               'Welcome to ID Express',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 40),
             TextField(
@@ -102,10 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.only(top: 16),
                 child: Text(
                   _errorMessage!,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -119,10 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       )
-                    : const Text(
-                        'Login',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                    : const Text('Login', style: TextStyle(fontSize: 16)),
               ),
             ),
             const SizedBox(height: 16),
@@ -132,11 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Text('Don\'t have an account? '),
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SignupScreen(),
-                      ),
-                    );
+                    context.push(RoutesPaths.signup);
                   },
                   child: const Text(
                     'Sign up',

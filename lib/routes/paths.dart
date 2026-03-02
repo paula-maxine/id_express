@@ -1,5 +1,8 @@
 /// Route path constants
 class RoutesPaths {
+  // Common routes
+  static const String home = '/';
+
   // Auth routes
   static const String splash = '/splash';
   static const String login = '/login';

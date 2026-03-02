@@ -1,11 +1,13 @@
 # NIRA National ID Registration App - Implementation Progress
 
 ## Overview
+
 This document tracks the implementation progress of transforming ID Express into a full-featured NIRA National ID registration system using Flutter, Riverpod, and Firebase.
 
 ## Completed Tasks (Steps 0-5)
 
 ### ✅ Step 0: Project Scaffolding & Dependencies
+
 - **pubspec.yaml updated** with all required dependencies:
   - State management: `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator`
   - Navigation: `go_router`
@@ -29,7 +31,9 @@ This document tracks the implementation progress of transforming ID Express into
   - `screens/` - UI screens organized by role (auth, applicant, officer, admin, settings)
 
 ### ✅ Step 1: Data Models
+
 Created 7 comprehensive data models with `json_serializable`:
+
 - `UserModel` - User account (uid, email, fullName, role, phone, timestamps, fcmToken, consentGiven)
 - `ApplicationModel` - Registration application with tracking ref
 - `AddressModel` - Address components (district, county, subCounty, parish, village)
@@ -39,12 +43,14 @@ Created 7 comprehensive data models with `json_serializable`:
 - `AuditLogModel` - Append-only audit trail
 
 Created 4 enums with extensions:
+
 - `UserRole` - applicant, officer, supervisor, admin
 - `ApplicationStatus` - submitted, underReview, approved, biometricPending, cardReady, rejected
 - `DocumentType` - birthCertificate, passportPhoto, supportingDocument, nationalId
 - `Gender` - male, female
 
 ### ✅ Step 2: Cloud Services Layer
+
 Created 7 cloud services with comprehensive error handling:
 
 1. **AuthCloudService** - Firebase Auth integration
@@ -77,6 +83,7 @@ Created 7 cloud services with comprehensive error handling:
 All services use custom exception classes: `AppException`, `AuthException`, `FirestoreException`, `StorageException`, `ValidationException`, `NetworkException`
 
 ### ✅ Step 3: Riverpod Providers
+
 Created 8 provider files with comprehensive state management:
 
 1. **service_providers.dart** - DI for all cloud services (7 providers)
@@ -117,6 +124,7 @@ Created 8 provider files with comprehensive state management:
    - `userProvider` - Single user by UID
 
 ### ✅ Step 4: Routing Configuration
+
 Created complete GoRouter setup:
 
 1. **paths.dart** - Route path constants for all screens:
@@ -135,9 +143,11 @@ Created complete GoRouter setup:
    - Splash screen during loading
 
 ### ✅ Step 5: Global Theme & Widgets
+
 Created comprehensive theme and widget system:
 
 **Theme System:**
+
 - **colors.dart** - NIRA brand colors + semantic colors
   - Primary: Deep blue (#0D47A1)
   - Accent: Amber (#FFC107 - Uganda flag colors)
@@ -150,6 +160,7 @@ Created comprehensive theme and widget system:
   - Proper elevation and border radius
 
 **Constants:**
+
 - **app_constants.dart** - Design tokens
   - Dimens (icon, avatar, image sizes)
   - Spacing scale (xs to xxxl)
@@ -163,6 +174,7 @@ Created comprehensive theme and widget system:
   - NIN (National ID) validation
 
 **Shared Widgets:**
+
 - **status_badge.dart** - Color-coded status display
 - **app_button.dart** - Primary button + text button with loading state
 - **loading_overlay.dart** - Full-screen loading overlay
@@ -171,11 +183,13 @@ Created comprehensive theme and widget system:
 - **nira_app_bar.dart** - Custom app bar + navigation drawer
 
 ## App Initialization
+
 - **main.dart** - Updated to use Riverpod `ProviderScope` and new app structure
 - **id_express.dart** - Material app router with theme and GoRouter setup
 - **app_exporter.dart** - Central export file for all app modules
 
 ## What's Completed
+
 ✅ Complete project structure and scaffolding  
 ✅ All 7 data models with serialization  
 ✅ All 7 cloud services with error handling  
@@ -189,7 +203,9 @@ Created comprehensive theme and widget system:
 ## Next Steps (Steps 6-16)
 
 ### 🔄 Step 6: Auth Screens
+
 Create authentication UI:
+
 - `LoginScreen` with email/password fields
 - `SignupScreen` with registration form
 - `ForgotPasswordScreen` with email recovery
@@ -197,6 +213,7 @@ Create authentication UI:
 - Privacy consent flow integration
 
 ### 🔄 Step 7: Applicant Screens (~8 screens)
+
 - Dashboard with stats and quick actions
 - Pre-registration multi-step form (Stepper)
 - Document upload screen with validation
@@ -206,6 +223,7 @@ Create authentication UI:
 - Appointment management
 
 ### 🔄 Step 8: Officer Screens (~6 screens)
+
 - Dashboard with pending queue stats
 - Pending applications list
 - Application review/verification screen with checklist
@@ -214,12 +232,14 @@ Create authentication UI:
 - Daily appointments view
 
 ### 🔄 Step 9: Admin Screens (~4 screens)
+
 - Admin dashboard with system stats
 - User management with role assignment
 - Reports with metrics and filters
 - Audit logs viewer with search/filter
 
 ### 🔄 Step 10: Settings & Shared Screens
+
 - Settings screen with theme toggle
 - User profile with edit capability
 - Password change
@@ -227,10 +247,12 @@ Create authentication UI:
 - Consent screen with checkboxes
 
 ### 🔄 Step 11: Audit Logging Integration
+
 - Integrate `AuditCloudService.logAction()` calls across services
 - Audit logging for: login, logout, create, update, approve, reject, upload, verify, flag, etc.
 
 ### 🔄 Step 12: Firestore Schema & Security Rules
+
 - Document complete Firestore schema
 - Write comprehensive security rules
   - Applicant access: own docs only
@@ -241,19 +263,23 @@ Create authentication UI:
 - Deploy rules to Firebase Console
 
 ### 🔄 Step 13: Push Notifications
+
 - FCM token storage and management
 - Notification triggers for status changes
 - In-app notification display
 - Background notification handling
 
 ### 🔄 Step 14: Testing Framework
+
 - Unit tests for models, validators, ViewModels
 - Widget tests for screens and components
 - Integration tests for complete flows
 - Mock services and test data
 
 ### 🔄 Step 15: Legal Compliance
+
 Ensure NIRA compliance:
+
 - Privacy notice with legal references
 - Explicit consent collection
 - Data minimization enforcement
@@ -275,8 +301,9 @@ flutter run
 ```
 
 ## File Statistics
+
 - **Models**: 7 files (4 enums + 7 models)
-- **Cloud Services**: 8 files (1 exception + 7 services) 
+- **Cloud Services**: 8 files (1 exception + 7 services)
 - **Providers**: 9 files (7 data + 1 router + 1 services)
 - **Routes**: 3 files (paths, routes, error page)
 - **Global**: 12 files (theme, constants, validators, widgets)
@@ -284,6 +311,7 @@ flutter run
 - **Total files created**: 70+ Dart files
 
 ## Architecture Highlights
+
 - ✅ Clean separation of concerns (data/providers/screens)
 - ✅ Type-safe state management with Riverpod
 - ✅ Reactive UI with StreamProviders
@@ -294,6 +322,7 @@ flutter run
 - ✅ JSON serialization for data models
 
 ## Notes
+
 - The old `lib/screens/` and `lib/services/` directories should be deleted
 - Code generation (json_serializable, riverpod_generator) requires build_runner
 - Firebase Emulator recommended for testing before deploying

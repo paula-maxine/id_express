@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../routes/paths.dart';
 
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
@@ -13,7 +15,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
-  
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -60,7 +62,7 @@ class _SignupScreenState extends State<SignupScreen> {
         );
 
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/upload');
+          context.go(RoutesPaths.home);
         }
       }
     } catch (e) {
@@ -79,10 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign Up'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Sign Up'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -91,10 +90,7 @@ class _SignupScreenState extends State<SignupScreen> {
             const SizedBox(height: 40),
             const Text(
               'Create Account',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 40),
             TextField(
@@ -148,10 +144,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding: const EdgeInsets.only(top: 16),
                 child: Text(
                   _errorMessage!,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -165,10 +158,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ? const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       )
-                    : const Text(
-                        'Sign Up',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                    : const Text('Sign Up', style: TextStyle(fontSize: 16)),
               ),
             ),
             const SizedBox(height: 16),
@@ -178,7 +168,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const Text('Already have an account? '),
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).pushReplacementNamed('/login');
+                    context.go(RoutesPaths.login);
                   },
                   child: const Text(
                     'Login',
