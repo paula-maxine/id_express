@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'global/theme/theme.dart';
-import 'providers/go_router_provider.dart';
+import '../global/theme/theme.dart';
+import '../providers/go_router_provider.dart';
 
 class IdExpress extends ConsumerWidget {
   const IdExpress({super.key});

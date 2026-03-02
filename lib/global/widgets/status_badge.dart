@@ -5,11 +5,7 @@ class StatusBadge extends StatelessWidget {
   final String status;
   final String? displayText;
 
-  const StatusBadge({
-    super.key,
-    required this.status,
-    this.displayText,
-  });
+  const StatusBadge({super.key, required this.status, this.displayText});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +15,7 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         border: Border.all(color: color),
         borderRadius: BorderRadius.circular(16),
       ),

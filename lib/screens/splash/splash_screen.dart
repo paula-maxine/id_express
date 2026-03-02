@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../global/theme/colors.dart';
+import '../../global/theme/colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -72,10 +72,7 @@ class _SplashScreenState extends State<SplashScreen>
                   const SizedBox(height: 8),
                   const Text(
                     'NIRA National ID Registration System',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.white70,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                 ],
               ),

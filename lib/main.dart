@@ -8,26 +8,19 @@ import 'app/id_express.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   // Request notification permissions
   await FirebaseMessaging.instance.requestPermission(
     alert: true,
     announcement: false,
     badge: true,
-    cardinality: RequestPermissionCardinality.unspecified,
     criticalAlert: false,
     provisional: false,
     sound: true,
   );
-  
-  runApp(
-    const ProviderScope(
-      child: IdExpress(),
-    ),
-  );
+
+  runApp(const ProviderScope(child: IdExpress()));
 }

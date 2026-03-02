@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'paths.dart';
-import 'error_page.dart';
+import '../routes/paths.dart';
+import '../routes/error_page.dart';
 import '../providers/auth_provider.dart';
 import '../screens/splash/splash_screen.dart';
 
@@ -61,15 +61,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RoutesPaths.login,
-        builder: (context, state) => const Placeholder(), // Will be replaced with LoginScreen
+        builder: (context, state) =>
+            const Placeholder(), // Will be replaced with LoginScreen
       ),
       GoRoute(
         path: RoutesPaths.signup,
-        builder: (context, state) => const Placeholder(), // Will be replaced with SignupScreen
+        builder: (context, state) =>
+            const Placeholder(), // Will be replaced with SignupScreen
       ),
       GoRoute(
         path: RoutesPaths.forgotPassword,
-        builder: (context, state) => const Placeholder(), // Will be replaced with ForgotPasswordScreen
+        builder: (context, state) =>
+            const Placeholder(), // Will be replaced with ForgotPasswordScreen
       ),
       GoRoute(
         path: RoutesPaths.applicantDashboard,

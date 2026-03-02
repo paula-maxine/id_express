@@ -2,13 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';
 
-enum UserRole {
-  applicant,
-  officer,
-  supervisor,
-  admin,
-}
-
 @JsonSerializable()
 class UserModel {
   final String uid;
