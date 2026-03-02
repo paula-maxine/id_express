@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/colors.dart';
 
 class AppButton extends StatelessWidget {
@@ -31,7 +32,7 @@ class AppButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isEnabled && !isLoading ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppColors.primaryBlue,
+          backgroundColor: backgroundColor ?? AppColors.primary,
           disabledBackgroundColor: AppColors.divider,
         ),
         child: isLoading
@@ -84,7 +85,7 @@ class AppTextButton extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: textColor ?? AppColors.primaryBlue,
+          color: textColor ?? AppColors.primary,
           fontWeight: FontWeight.w600,
         ),
       ),

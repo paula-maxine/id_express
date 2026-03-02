@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'colors.dart';
 
 class AppTheme {
@@ -6,13 +7,13 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryBlue,
+        seedColor: AppColors.primary,
         secondary: AppColors.accentAmber,
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: AppColors.backgroundColor,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         elevation: 0,
         centerTitle: true,
@@ -24,14 +25,14 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.primaryBlue),
+        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -46,7 +47,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -69,13 +70,13 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryBlue,
+        seedColor: AppColors.primary,
         secondary: AppColors.accentAmber,
         brightness: Brightness.dark,
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         elevation: 0,
         centerTitle: true,

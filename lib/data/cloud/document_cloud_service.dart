@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+
+import '../model/audit_log_model.dart';
 import '../model/document_model.dart';
 import 'app_exception.dart';
+import 'audit_cloud_service.dart';
 
 class DocumentCloudService {
   final FirebaseFirestore _firestore;
@@ -83,6 +87,21 @@ class DocumentCloudService {
         'verified_by_uid': officerUid,
         'verified_at': FieldValue.serverTimestamp(),
       });
+      // Audit log
+      try {
+        final auditSvc = AuditCloudService(firestore: _firestore);
+        final audit = AuditLogModel(
+          id: const Uuid().v4(),
+          userId: officerUid,
+          userRole: 'officer',
+          action: 'document_verified',
+          targetCollection: 'documents',
+          targetDocId: docId,
+          details: null,
+          timestamp: DateTime.now(),
+        );
+        await auditSvc.logAction(audit);
+      } catch (_) {}
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to verify document: ${e.message}',
@@ -104,6 +123,21 @@ class DocumentCloudService {
         'flag_reason': reason,
         'is_verified': false,
       });
+      // Audit log for flagging
+      try {
+        final auditSvc = AuditCloudService(firestore: _firestore);
+        final audit = AuditLogModel(
+          id: const Uuid().v4(),
+          userId: 'system',
+          userRole: 'system',
+          action: 'document_flagged',
+          targetCollection: 'documents',
+          targetDocId: docId,
+          details: {'reason': reason},
+          timestamp: DateTime.now(),
+        );
+        await auditSvc.logAction(audit);
+      } catch (_) {}
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to flag document: ${e.message}',

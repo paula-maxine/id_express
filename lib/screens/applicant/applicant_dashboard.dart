@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../global/widgets/app_button.dart';
+import '../../providers/appointment_provider.dart';
+import '../../providers/auth_provider.dart';
+import 'appointments/appointment_details_screen.dart';
+import 'appointments/book_appointment_screen.dart';
 
 class ApplicantDashboard extends ConsumerWidget {
   const ApplicantDashboard({super.key});
@@ -31,16 +35,53 @@ class ApplicantDashboard extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Your Applications',
+              'Your Appointments',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const Expanded(
-              child: Center(child: Text('You have no active applications.')),
+            Expanded(
+              child: Consumer(builder: (context, ref, _) {
+                final apps = ref.watch(appointmentStreamProvider);
+                return apps.when(
+                  data: (list) {
+                    if (list.isEmpty) {
+                      return const Center(child: Text('No appointments yet'));
+                    }
+                    return ListView.builder(
+                      itemCount: list.length,
+                      itemBuilder: (context, index) {
+                        final appt = list[index];
+                        return ListTile(
+                          title: Text(appt.queueToken),
+                          subtitle: Text(appt.dateTime.toLocal().toString()),
+                          onTap: () async {
+                            final res = await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => AppointmentDetailsScreen(appointment: appt),
+                              ),
+                            );
+                            if (res == true) {
+                              // refresh automatically via stream
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, st) => Center(child: Text('Error: $e')),
+                );
+              }),
             ),
             AppButton(
-              label: 'Start New Application',
-              onPressed: () {
-                // Navigate to pre-registration
+              label: 'Book Appointment',
+              onPressed: () async {
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => BookAppointmentScreen(applicationId: user?.uid ?? '')),
+                );
+                if (result == true) {
+                  // nothing
+                }
               },
             ),
           ],

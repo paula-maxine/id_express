@@ -6,6 +6,7 @@ part 'service_centre_model.g.dart';
 class ServiceCentreModel {
   final String id;
   final String name;
+  final String code;
   final String district;
   final String address;
   @JsonKey(name: 'operating_hours')
@@ -15,6 +16,7 @@ class ServiceCentreModel {
 
   ServiceCentreModel({
     required this.id,
+    required this.code,
     required this.name,
     required this.district,
     required this.address,
@@ -29,6 +31,7 @@ class ServiceCentreModel {
 
   ServiceCentreModel copyWith({
     String? id,
+    String? code,
     String? name,
     String? district,
     String? address,
@@ -37,6 +40,7 @@ class ServiceCentreModel {
   }) {
     return ServiceCentreModel(
       id: id ?? this.id,
+      code: code ?? this.code,
       name: name ?? this.name,
       district: district ?? this.district,
       address: address ?? this.address,

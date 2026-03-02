@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // NIRA brand colors
-  static const Color primaryBlue = Color(0xFF0D47A1); // Deep blue
+  static const Color primary = Color(0xFFCD0000); // Red
   static const Color accentAmber = Color(0xFFFFC107); // Amber (Uganda flag)
   
   // Semantic colors
@@ -11,7 +11,7 @@ class AppColors {
   static const Color dangerRed = Color(0xFFD32F2F);
   static const Color infoBlue = Color(0xFF2196F3);
   
-  // Neutral colors
+  // Neutral colors 
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color textPrimary = Color(0xFF212121);

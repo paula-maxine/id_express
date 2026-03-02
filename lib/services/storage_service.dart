@@ -12,6 +12,19 @@ class StorageService {
     required File imageFile,
   }) async {
     try {
+      // Validate file size (max 5 MB) and type
+      final int maxBytes = 5 * 1024 * 1024;
+      final int fileSize = await imageFile.length();
+      if (fileSize > maxBytes) {
+        throw 'File too large. Maximum allowed size is 5 MB.';
+      }
+
+      final allowedExt = ['jpg', 'jpeg', 'png'];
+      final ext = imageFile.path.split('.').last.toLowerCase();
+      if (!allowedExt.contains(ext)) {
+        throw 'Unsupported file type. Allowed: JPG, JPEG, PNG.';
+      }
+
       String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       String path = 'users/$uid/documents/$documentType/$fileName';
 

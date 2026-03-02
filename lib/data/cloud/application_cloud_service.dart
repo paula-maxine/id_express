@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+
 import '../model/application_model.dart';
+import '../model/audit_log_model.dart';
 import 'app_exception.dart';
+import 'audit_cloud_service.dart';
 
 class ApplicationCloudService {
   final FirebaseFirestore _firestore;
@@ -14,6 +18,21 @@ class ApplicationCloudService {
       final docRef = _firestore.collection('applications').doc();
       final appWithId = application.copyWith(id: docRef.id);
       await docRef.set(appWithId.toJson());
+      // Audit log
+      try {
+        final auditSvc = AuditCloudService(firestore: _firestore);
+        final audit = AuditLogModel(
+          id: const Uuid().v4(),
+          userId: appWithId.applicantUid,
+          userRole: 'applicant',
+          action: 'application_created',
+          targetCollection: 'applications',
+          targetDocId: appWithId.id,
+          details: {'tracking_ref': appWithId.trackingRef},
+          timestamp: DateTime.now(),
+        );
+        await auditSvc.logAction(audit);
+      } catch (_) {}
       return appWithId;
     } on FirebaseException catch (e) {
       throw FirestoreException(
@@ -130,6 +149,21 @@ class ApplicationCloudService {
       }
 
       await _firestore.collection('applications').doc(id).update(updates);
+      // Audit log for status update
+      try {
+        final auditSvc = AuditCloudService(firestore: _firestore);
+        final audit = AuditLogModel(
+          id: const Uuid().v4(),
+          userId: officerUid,
+          userRole: 'officer',
+          action: 'application_status_updated',
+          targetCollection: 'applications',
+          targetDocId: id,
+          details: {'new_status': newStatus, 'rejection_reason': rejectionReason},
+          timestamp: DateTime.now(),
+        );
+        await auditSvc.logAction(audit);
+      } catch (_) {}
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to update application status: ${e.message}',
@@ -149,6 +183,21 @@ class ApplicationCloudService {
     try {
       fields['updated_at'] = FieldValue.serverTimestamp();
       await _firestore.collection('applications').doc(id).update(fields);
+      // Audit log for application update
+      try {
+        final auditSvc = AuditCloudService(firestore: _firestore);
+        final audit = AuditLogModel(
+          id: const Uuid().v4(),
+          userId: fields['updated_by'] ?? 'system',
+          userRole: 'officer',
+          action: 'application_updated',
+          targetCollection: 'applications',
+          targetDocId: id,
+          details: fields,
+          timestamp: DateTime.now(),
+        );
+        await auditSvc.logAction(audit);
+      } catch (_) {}
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to update application: ${e.message}',

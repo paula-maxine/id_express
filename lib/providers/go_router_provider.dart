@@ -1,18 +1,24 @@
-import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:id_express/screens/signup_screen.dart';
-import '../routes/paths.dart';
-import '../routes/error_page.dart';
+
 import '../providers/auth_provider.dart';
-import '../screens/login_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/splash/splash_screen.dart';
-import '../screens/auth/forgot_password_screen.dart';
-import '../screens/applicant/applicant_dashboard.dart';
-import '../screens/officer/officer_dashboard.dart';
+import '../routes/error_page.dart';
+import '../routes/paths.dart';
 import '../screens/admin/admin_dashboard.dart';
-import '../screens/settings/settings_screen.dart';
+import '../screens/applicant/applicant_dashboard.dart';
+import '../screens/applicant/appointments/book_appointment_screen.dart';
+import '../screens/applicant/pre_registration_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/officer/daily_appointments_screen.dart';
+import '../screens/officer/officer_dashboard.dart';
+import '../screens/officer/pending_applications_screen.dart';
 import '../screens/settings/privacy_policy_screen.dart';
+import '../screens/settings/settings_screen.dart';
+import '../screens/splash/splash_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -25,9 +31,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final role = userRole.whenData((data) => data).value;
 
       // Show splash while loading
-      if (isLoading) {
-        return RoutesPaths.splash;
-      }
+      // if (isLoading) {
+      //   return RoutesPaths.splash;
+      // }
 
       // No user logged in
       if (user == null) {
@@ -42,9 +48,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // User logged in but role not loaded yet
-      if (role == null) {
-        return RoutesPaths.splash;
-      }
+      // if (role == null) {
+      //   return RoutesPaths.splash;
+      // }
 
       // Redirect based on role
       if (state.matchedLocation == RoutesPaths.login ||
@@ -62,6 +68,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       return null;
     },
+    initialLocation: RoutesPaths.home,
     routes: [
       GoRoute(
         path: RoutesPaths.home,
@@ -87,11 +94,41 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutesPaths.applicantDashboard,
         builder: (context, state) => const ApplicantDashboard(),
+        routes: [
+          GoRoute(
+            path: RoutesPaths.preRegistration.replaceFirst('/applicant', '').substring(1),
+            builder: (context, state) => const PreRegistrationScreen(),
+          ),
+          GoRoute(
+            path: RoutesPaths.bookAppointment.replaceFirst('/applicant', '').substring(1),
+            builder: (context, state) {
+              // applicationId must be passed via push; default to empty
+              return const BookAppointmentScreen(applicationId: '');
+            },
+          ),
+          GoRoute(
+            path: RoutesPaths.appointmentDetails.replaceFirst('/applicant', '').substring(1),
+            builder: (context, state) {
+              // details route not used yet
+              return const SizedBox();
+            },
+          ),
+        ],
       ),
       // Officer dashboard
       GoRoute(
         path: RoutesPaths.officerDashboard,
         builder: (context, state) => const OfficerDashboard(),
+        routes: [
+          GoRoute(
+            path: RoutesPaths.pendingApplications.replaceFirst('/officer', '').substring(1),
+            builder: (context, state) => const PendingApplicationsScreen(),
+          ),
+          GoRoute(
+            path: RoutesPaths.dailyAppointments.replaceFirst('/officer', '').substring(1),
+            builder: (context, state) => const DailyAppointmentsScreen(),
+          ),
+        ],
       ),
       // Admin dashboard
       GoRoute(

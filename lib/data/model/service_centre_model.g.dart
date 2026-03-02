@@ -9,6 +9,7 @@ part of 'service_centre_model.dart';
 ServiceCentreModel _$ServiceCentreModelFromJson(Map<String, dynamic> json) =>
     ServiceCentreModel(
       id: json['id'] as String,
+      code: json['code'] as String,
       name: json['name'] as String,
       district: json['district'] as String,
       address: json['address'] as String,
@@ -20,6 +21,7 @@ Map<String, dynamic> _$ServiceCentreModelToJson(ServiceCentreModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'code': instance.code,
       'district': instance.district,
       'address': instance.address,
       'operating_hours': instance.operatingHours,

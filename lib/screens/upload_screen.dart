@@ -1,24 +1,24 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../data/model/document_model.dart';
+import '../providers/service_providers.dart';
 import '../services/auth_service.dart';
-import '../services/firestore_service.dart';
-import '../services/storage_service.dart';
 import 'documents_list_screen.dart';
 
-class UploadScreen extends StatefulWidget {
+class UploadScreen extends ConsumerStatefulWidget {
   const UploadScreen({super.key});
 
   @override
-  State<UploadScreen> createState() => _UploadScreenState();
+  ConsumerState<UploadScreen> createState() => _UploadScreenState();
 }
 
-class _UploadScreenState extends State<UploadScreen> {
+class _UploadScreenState extends ConsumerState<UploadScreen> {
   final AuthService _authService = AuthService();
-  final FirestoreService _firestoreService = FirestoreService();
-  final StorageService _storageService = StorageService();
+  // removed direct firestore/storage usage; use repository
   final ImagePicker _imagePicker = ImagePicker();
 
   final _fullNameController = TextEditingController();
@@ -79,21 +79,22 @@ class _UploadScreenState extends State<UploadScreen> {
 
     try {
       final uid = _authService.currentUser!.uid;
+      final repo = ref.read(documentRepositoryProvider);
 
-      // Upload image to Firebase Storage
-      String imageUrl = await _storageService.uploadDocumentImage(
-        uid: uid,
-        documentType: _selectedDocumentType!,
-        imageFile: _selectedImage!,
+      final document = DocumentModel(
+        id: '',
+        applicationId: uid,
+        type: _selectedDocumentType!,
+        fileName: _selectedImage!.path.split('/').last,
+        imageUrl: '',
+        fileSize: await _selectedImage!.length(),
+        mimeType: 'image/jpeg',
+        uploadedAt: DateTime.now(),
       );
 
-      // Save document record to Firestore
-      await _firestoreService.saveDocumentRecord(
-        uid: uid,
-        documentType: _selectedDocumentType!,
-        idNumber: _idNumberController.text.trim(),
-        fullName: _fullNameController.text.trim(),
-        imageUrl: imageUrl,
+      await repo.saveDocument(
+        document: document,
+        localFilePath: _selectedImage!.path,
       );
 
       setState(() {
@@ -102,13 +103,12 @@ class _UploadScreenState extends State<UploadScreen> {
         _selectedImage = null;
       });
 
-      // Show success dialog
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Success'),
-            content: const Text('Document uploaded successfully!'),
+            content: const Text('Document queued for upload.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),

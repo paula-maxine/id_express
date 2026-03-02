@@ -194,6 +194,20 @@ flutter run
    - No hardcoded credentials
    - Exception handling throughout
 
+## ✅ Recent Enhancements (aligned with NIRA requirements)
+
+- **Role-Based Access Control**: user roles fetched from Firestore; routing and dashboards redirect based on role (applicant/officer/admin).
+- **Offline-First Support**: local queue using Sembast database for both applications and document uploads; auto-sync on connectivity restore.
+- **Synchronization Engine**: `SyncService` handles pending applications/documents, retries, and cleans local cache.
+- **Document Upload Validation**: file size/type checks (≤5 MB; JPG/PNG) and preview UI; offline queue for images.
+- **Appointment & Queue Management**: booking screen, queue token generation, status update, cancellation/reschedule, officer view of appointments.
+- **Officer Verification Module**: pending applications list with approve/reject actions; audit logs recorded for actions.
+- **Audit Trail**: audit entries created across application, document, and appointment operations with user ID, role, timestamps.
+- **Offline Data Capture & Sync**: ensures zero data loss and background sync service listening to connectivity.
+- **Security Improvements**: secure role retrieval, strict Firestore operations, encrypted local storage via FlutterSecureStorage more broadly available.
+- **Expanded Routing**: additional GoRouter paths for new screens and role-specific navigation.
+
+
 ## 📚 Documentation Provided
 
 1. **QUICK_START.md** (2-3 min read)

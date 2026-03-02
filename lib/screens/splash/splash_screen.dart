@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../global/theme/colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlue,
+      backgroundColor: AppColors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -56,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Icon(
                         Icons.card_membership,
                         size: 48,
-                        color: AppColors.primaryBlue,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
