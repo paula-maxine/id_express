@@ -61,38 +61,41 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RoutesPaths.login,
-        builder: (context, state) =>
-            const Placeholder(), // Will be replaced with LoginScreen
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: RoutesPaths.signup,
-        builder: (context, state) =>
-            const Placeholder(), // Will be replaced with SignupScreen
+        builder: (context, state) => const SignupScreen(),
       ),
+      // TODO: Add ForgotPasswordScreen when implemented
       GoRoute(
         path: RoutesPaths.forgotPassword,
-        builder: (context, state) =>
-            const Placeholder(), // Will be replaced with ForgotPasswordScreen
+        builder: (context, state) => const Placeholder(),
       ),
+      // Applicant dashboard: use UploadScreen as placeholder for now
       GoRoute(
         path: RoutesPaths.applicantDashboard,
-        builder: (context, state) => const Placeholder(), // Will be replaced
+        builder: (context, state) => const UploadScreen(),
       ),
+      // Officer dashboard placeholder
       GoRoute(
         path: RoutesPaths.officerDashboard,
-        builder: (context, state) => const Placeholder(), // Will be replaced
+        builder: (context, state) => const Placeholder(),
       ),
+      // Admin dashboard placeholder
       GoRoute(
         path: RoutesPaths.adminDashboard,
-        builder: (context, state) => const Placeholder(), // Will be replaced
+        builder: (context, state) => const Placeholder(),
       ),
+      // Settings placeholder
       GoRoute(
         path: RoutesPaths.settings,
-        builder: (context, state) => const Placeholder(), // Will be replaced
+        builder: (context, state) => const Placeholder(),
       ),
+      // Privacy policy placeholder
       GoRoute(
         path: RoutesPaths.privacyPolicy,
-        builder: (context, state) => const Placeholder(), // Will be replaced
+        builder: (context, state) => const Placeholder(),
       ),
     ],
     errorBuilder: (context, state) =>

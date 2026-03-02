@@ -13,8 +13,7 @@ ID Express is a Flutter app for registering national IDs and passports using Fir
 | Authentication Flow | ✅ Complete | Login/Signup with Firebase Auth |
 | Document Upload | ✅ Complete | Image capture + Firebase Storage |
 | Database Schema | ✅ Complete | Firestore collections defined |
-| Security Rules | ⚠️ Pending | Requires Firebase Console setup |
-| Error Handling | ✅ Complete | User-friendly error messages |
+| Security Rules | ⚠️ Pending | Requires Firebase Console setup | | Error Handling | ✅ Complete | User-friendly error messages |
 | Code Quality | ✅ Complete | No linting errors, follows best practices |
 
 ## 🔴 Critical Setup Required

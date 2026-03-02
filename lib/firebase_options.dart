@@ -26,28 +26,29 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_WEB_API_KEY',
-    appId: 'YOUR_WEB_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCWbf2uqbvfSP8fxGO-hOSilG9l_8AJhMc',
+    appId: '1:95235618414:web:a70053241ac2aebec6d87f',
+    messagingSenderId: '95235618414',
+    projectId: 'id-express-paula',
+    authDomain: 'id-express-paula.firebaseapp.com',
+    storageBucket: 'id-express-paula.firebasestorage.app',
+    measurementId: 'G-CPLMW0BEYV',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyBC_TMc5n5MEmw95B0G7W1tFFAM1ghVWHA',
+    appId: '1:95235618414:android:f981d02a9d908af5c6d87f',
+    messagingSenderId: '95235618414',
+    projectId: 'id-express-paula',
+    storageBucket: 'id-express-paula.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyDtN3CX65AmeqszU4tuPFpzNLAf1JBHiE8',
+    appId: '1:95235618414:ios:c3a1c5564058142ec6d87f',
+    messagingSenderId: '95235618414',
+    projectId: 'id-express-paula',
+    storageBucket: 'id-express-paula.firebasestorage.app',
     iosBundleId: 'com.example.idExpress',
   );
 
@@ -61,11 +62,13 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'YOUR_WINDOWS_API_KEY',
-    appId: 'YOUR_WINDOWS_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCWbf2uqbvfSP8fxGO-hOSilG9l_8AJhMc',
+    appId: '1:95235618414:web:672b7d99abc1f3b7c6d87f',
+    messagingSenderId: '95235618414',
+    projectId: 'id-express-paula',
+    authDomain: 'id-express-paula.firebaseapp.com',
+    storageBucket: 'id-express-paula.firebasestorage.app',
+    measurementId: 'G-327YNSNGDL',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(

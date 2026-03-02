@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "95235618414",
+    "project_id": "id-express-paula",
+    "storage_bucket": "id-express-paula.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95235618414:android:f981d02a9d908af5c6d87f",
+        "android_client_info": {
+          "package_name": "com.example.id_express"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBC_TMc5n5MEmw95B0G7W1tFFAM1ghVWHA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95235618414:android:9c24bc65427eebb6c6d87f",
+        "android_client_info": {
+          "package_name": "com.maxine.idexpress"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBC_TMc5n5MEmw95B0G7W1tFFAM1ghVWHA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
