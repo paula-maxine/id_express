@@ -13,14 +13,12 @@ class AuthService {
     required String fullName,
   }) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
       // Update user profile with full name
       await userCredential.user?.updateDisplayName(fullName);
-      
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthError(e);

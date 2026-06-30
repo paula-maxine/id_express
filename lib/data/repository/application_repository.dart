@@ -9,8 +9,8 @@ class ApplicationRepository {
   final SyncService _sync;
 
   ApplicationRepository({ApplicationCloudService? cloud, SyncService? sync})
-      : _cloud = cloud ?? ApplicationCloudService(),
-        _sync = sync ?? SyncService();
+    : _cloud = cloud ?? ApplicationCloudService(),
+      _sync = sync ?? SyncService();
 
   /// Initialize local sync service (call during app startup)
   Future<void> init() async {
@@ -20,7 +20,7 @@ class ApplicationRepository {
   /// Create application: if offline queue locally, otherwise send to cloud
   Future<ApplicationModel> createApplication(ApplicationModel app) async {
     final connectivity = await Connectivity().checkConnectivity();
-    if (connectivity == ConnectivityResult.none) {
+    if (!connectivity.any((r) => r != ConnectivityResult.none)) {
       // queue locally and return the original model
       await _sync.queueApplication(app);
       return app;

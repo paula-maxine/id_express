@@ -1,20 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../global/theme/theme.dart';
-import '../providers/go_router_provider.dart';
+import '../app_exporter.dart';
 
+/// Root app widget
 class IdExpress extends ConsumerWidget {
+  /// Creates the ID Express app
   const IdExpress({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goRouter = ref.watch(goRouterProvider);
+    final appTheme = ref.watch(appThemeProvider);
 
     return MaterialApp.router(
       title: 'ID Express',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: appTheme,
       themeMode: ThemeMode.light,
       routerConfig: goRouter,
     );

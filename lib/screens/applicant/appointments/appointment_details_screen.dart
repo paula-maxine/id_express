@@ -31,7 +31,7 @@ class AppointmentDetailsScreen extends ConsumerWidget {
                       await ref
                           .read(appointmentCloudServiceProvider)
                           .cancelAppointment(appointment.id);
-                      Navigator.pop(context, true);
+                      if (context.mounted) Navigator.pop(context, true);
                     },
                     child: const Text('Cancel'),
                   ),
@@ -49,7 +49,7 @@ class AppointmentDetailsScreen extends ConsumerWidget {
                         await ref
                             .read(appointmentCloudServiceProvider)
                             .rescheduleAppointment(appointment.id, newDate);
-                        Navigator.pop(context, true);
+                        if (context.mounted) Navigator.pop(context, true);
                       }
                     },
                     child: const Text('Reschedule'),

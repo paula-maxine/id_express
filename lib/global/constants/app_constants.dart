@@ -1,4 +1,3 @@
-
 class AppDimens {
   // Icon sizes
   static const double iconXSmall = 16;
@@ -53,10 +52,12 @@ class AppStrings {
   static const String appName = 'ID Express';
   static const String appFullName = 'NIRA National ID Registration System';
   static const String appTagline = 'Fast. Secure. Reliable.';
-  
+
   // Error messages
   static const String errorGeneric = 'An error occurred. Please try again.';
-  static const String errorNetwork = 'Network error. Please check your connection.';
-  static const String errorValidation = 'Please check your input and try again.';
+  static const String errorNetwork =
+      'Network error. Please check your connection.';
+  static const String errorValidation =
+      'Please check your input and try again.';
   static const String errorAuth = 'Authentication failed. Please try again.';
 }

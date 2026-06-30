@@ -27,54 +27,62 @@ class PendingApplicationsScreen extends ConsumerWidget {
                 title: Text(app.fullName),
                 subtitle: Text('Status: ${app.status}'),
                 trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
-                        onPressed: () async {
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.check, color: Colors.green),
+                      onPressed: () async {
+                        await ref
+                            .read(applicationCloudServiceProvider)
+                            .updateApplicationStatus(
+                              app.id,
+                              'underReview',
+                              officerUid: user?.uid ?? '',
+                            );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.red),
+                      onPressed: () async {
+                        final reasonController = TextEditingController();
+                        await showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Reject application'),
+                            content: TextField(
+                              controller: reasonController,
+                              decoration: const InputDecoration(
+                                hintText: 'Reason',
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx, true);
+                                },
+                                child: const Text('Reject'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (reasonController.text.isNotEmpty) {
                           await ref
                               .read(applicationCloudServiceProvider)
-                              .updateApplicationStatus(app.id, 'underReview',
-                                  officerUid: user?.uid ?? '');
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () async {
-                          final reasonController = TextEditingController();
-                          await showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Reject application'),
-                              content: TextField(
-                                controller: reasonController,
-                                decoration:
-                                    const InputDecoration(hintText: 'Reason'),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(ctx, true);
-                                  },
-                                  child: const Text('Reject'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (reasonController.text.isNotEmpty) {
-                            await ref
-                                .read(applicationCloudServiceProvider)
-                                .updateApplicationStatus(app.id, 'rejected',
-                                    officerUid: user?.uid ?? '',
-                                    rejectionReason: reasonController.text);
-                          }
-                        },
-                      ),
-                    ]),
+                              .updateApplicationStatus(
+                                app.id,
+                                'rejected',
+                                officerUid: user?.uid ?? '',
+                                rejectionReason: reasonController.text,
+                              );
+                        }
+                      },
+                    ),
+                  ],
+                ),
                 onTap: () {
                   // maybe open details/edit screen
                 },

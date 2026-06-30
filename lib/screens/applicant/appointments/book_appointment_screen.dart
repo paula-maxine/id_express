@@ -13,7 +13,8 @@ class BookAppointmentScreen extends ConsumerStatefulWidget {
   final String applicationId;
 
   @override
-  ConsumerState<BookAppointmentScreen> createState() => _BookAppointmentScreenState();
+  ConsumerState<BookAppointmentScreen> createState() =>
+      _BookAppointmentScreenState();
 }
 
 class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
@@ -93,10 +94,7 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                 value: _selectedCentre,
                 hint: const Text('Select centre'),
                 items: centres
-                    .map((c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c.name),
-                        ))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
                     .toList(),
                 onChanged: (v) {
                   setState(() {
@@ -108,9 +106,11 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
               const Text('Date'),
               Row(
                 children: [
-                  Text(_selectedDate == null
-                      ? 'No date chosen'
-                      : _selectedDate!.toLocal().toString().split(' ')[0]),
+                  Text(
+                    _selectedDate == null
+                        ? 'No date chosen'
+                        : _selectedDate!.toLocal().toString().split(' ')[0],
+                  ),
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: _pickDate,
@@ -121,14 +121,18 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _saving ? null : _submit,
                 child: _saving
                     ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
                     : const Text('Book'),
               ),
             ],

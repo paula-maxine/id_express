@@ -6,7 +6,7 @@ class UserCloudService {
   final FirebaseFirestore _firestore;
 
   UserCloudService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Create a new user in Firestore
   Future<void> createUser(UserModel user) async {
@@ -71,9 +71,7 @@ class UserCloudService {
           .collection('users')
           .where('role', isEqualTo: role)
           .get();
-      return query.docs
-          .map((doc) => UserModel.fromJson(doc.data()))
-          .toList();
+      return query.docs.map((doc) => UserModel.fromJson(doc.data())).toList();
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to fetch users: ${e.message}',
@@ -91,10 +89,9 @@ class UserCloudService {
   /// Deactivate user
   Future<void> deactivateUser(String uid) async {
     try {
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .update({'is_active': false});
+      await _firestore.collection('users').doc(uid).update({
+        'is_active': false,
+      });
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to deactivate user: ${e.message}',
@@ -130,10 +127,9 @@ class UserCloudService {
   /// Update user FCM token
   Future<void> updateFcmToken(String uid, String token) async {
     try {
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .update({'fcm_token': token});
+      await _firestore.collection('users').doc(uid).update({
+        'fcm_token': token,
+      });
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to update FCM token: ${e.message}',

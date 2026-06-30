@@ -11,17 +11,20 @@ class AppointmentCloudService {
   final FirebaseFirestore _firestore;
 
   AppointmentCloudService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Create an appointment
   Future<AppointmentModel> createAppointment(
-      AppointmentModel appointment) async {
+    AppointmentModel appointment,
+  ) async {
     try {
       // Ensure queue token exists; generate if empty
       String queueToken = appointment.queueToken;
       if (queueToken.isEmpty) {
         queueToken = await _generateQueueTokenForCentre(
-            appointment.serviceCentreId, appointment.dateTime);
+          appointment.serviceCentreId,
+          appointment.dateTime,
+        );
       }
 
       final docRef = _firestore.collection('appointments').doc();
@@ -69,12 +72,19 @@ class AppointmentCloudService {
   /// Generate a queue token for a service centre on a specific date.
   /// Format: {centreCode}-{YYYYMMDD}-{4-digit sequence}
   Future<String> _generateQueueTokenForCentre(
-      String centreId, DateTime date) async {
+    String centreId,
+    DateTime date,
+  ) async {
     try {
       // Load centre to get code
-      final centreDoc = await _firestore.collection('service_centres').doc(centreId).get();
+      final centreDoc = await _firestore
+          .collection('service_centres')
+          .doc(centreId)
+          .get();
       final centre = centreDoc.exists
-          ? ServiceCentreModel.fromJson(centreDoc.data() as Map<String, dynamic>)
+          ? ServiceCentreModel.fromJson(
+              centreDoc.data() as Map<String, dynamic>,
+            )
           : ServiceCentreModel(
               id: centreId,
               code: 'CEN',
@@ -109,12 +119,14 @@ class AppointmentCloudService {
       }
 
       final nextSeq = maxSeq + 1;
-      final datePart = '${date.year.toString().padLeft(4, '0')}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+      final datePart =
+          '${date.year.toString().padLeft(4, '0')}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
       final seqStr = nextSeq.toString().padLeft(4, '0');
       return '$centreCode-$datePart-$seqStr';
     } catch (e) {
       // Fallback token
-      final datePart = '${date.year.toString().padLeft(4, '0')}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+      final datePart =
+          '${date.year.toString().padLeft(4, '0')}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
       return 'CEN-$datePart-0001';
     }
   }
@@ -153,10 +165,10 @@ class AppointmentCloudService {
           .orderBy('date_time', descending: false)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => AppointmentModel.fromJson(doc.data()))
-            .toList();
-      });
+            return snapshot.docs
+                .map((doc) => AppointmentModel.fromJson(doc.data()))
+                .toList();
+          });
     } catch (e) {
       throw FirestoreException(
         message: 'Failed to stream appointments: $e',
@@ -167,7 +179,9 @@ class AppointmentCloudService {
 
   /// Get appointments by date and service centre
   Future<List<AppointmentModel>> getAppointmentsByDate(
-      String centreId, DateTime date) async {
+    String centreId,
+    DateTime date,
+  ) async {
     try {
       final startOfDay = DateTime(date.year, date.month, date.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
@@ -224,10 +238,9 @@ class AppointmentCloudService {
   /// Cancel appointment
   Future<void> cancelAppointment(String appointmentId) async {
     try {
-      await _firestore
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({'status': 'cancelled'});
+      await _firestore.collection('appointments').doc(appointmentId).update({
+        'status': 'cancelled',
+      });
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to cancel appointment: ${e.message}',
@@ -244,12 +257,13 @@ class AppointmentCloudService {
 
   /// Reschedule appointment
   Future<void> rescheduleAppointment(
-      String appointmentId, DateTime newDateTime) async {
+    String appointmentId,
+    DateTime newDateTime,
+  ) async {
     try {
-      await _firestore
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({'date_time': newDateTime});
+      await _firestore.collection('appointments').doc(appointmentId).update({
+        'date_time': newDateTime,
+      });
     } on FirebaseException catch (e) {
       throw FirestoreException(
         message: 'Failed to reschedule appointment: ${e.message}',

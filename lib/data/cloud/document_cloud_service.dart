@@ -10,11 +10,12 @@ class DocumentCloudService {
   final FirebaseFirestore _firestore;
 
   DocumentCloudService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Get documents by application ID
   Future<List<DocumentModel>> getDocumentsByApplication(
-      String applicationId) async {
+    String applicationId,
+  ) async {
     try {
       final query = await _firestore
           .collection('documents')
@@ -39,17 +40,18 @@ class DocumentCloudService {
 
   /// Stream documents for an application
   Stream<List<DocumentModel>> streamDocumentsByApplication(
-      String applicationId) {
+    String applicationId,
+  ) {
     try {
       return _firestore
           .collection('documents')
           .where('application_id', isEqualTo: applicationId)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => DocumentModel.fromJson(doc.data()))
-            .toList();
-      });
+            return snapshot.docs
+                .map((doc) => DocumentModel.fromJson(doc.data()))
+                .toList();
+          });
     } catch (e) {
       throw FirestoreException(
         message: 'Failed to stream documents: $e',

@@ -20,14 +20,14 @@ class SyncService {
   final _uuid = const Uuid();
 
   SyncService({ApplicationCloudService? cloudService})
-      : _cloudService = cloudService ?? ApplicationCloudService();
+    : _cloudService = cloudService ?? ApplicationCloudService();
 
   Future<void> init() async {
     final dir = await getApplicationDocumentsDirectory();
     _db = await databaseFactoryIo.openDatabase('${dir.path}/id_express.db');
     // start listening to connectivity to auto-sync
     Connectivity().onConnectivityChanged.listen((result) {
-      if (result != ConnectivityResult.none) {
+      if (result.any((r) => r != ConnectivityResult.none)) {
         syncPendingApplications();
       }
     });
@@ -45,7 +45,10 @@ class SyncService {
   }
 
   /// Queue a document along with its local image path to upload later.
-  Future<String> queueDocument(Map<String, dynamic> documentJson, String filePath) async {
+  Future<String> queueDocument(
+    Map<String, dynamic> documentJson,
+    String filePath,
+  ) async {
     final key = _uuid.v4();
     final record = {
       'local_id': key,
@@ -77,7 +80,7 @@ class SyncService {
 
   Future<void> syncPendingApplications() async {
     final connectivity = await Connectivity().checkConnectivity();
-    if (connectivity == ConnectivityResult.none) return;
+    if (!connectivity.any((r) => r != ConnectivityResult.none)) return;
 
     final pendingApps = await getPendingApplications();
     for (final item in pendingApps) {

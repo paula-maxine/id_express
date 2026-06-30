@@ -39,45 +39,52 @@ class ApplicantDashboard extends ConsumerWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Expanded(
-              child: Consumer(builder: (context, ref, _) {
-                final apps = ref.watch(appointmentStreamProvider);
-                return apps.when(
-                  data: (list) {
-                    if (list.isEmpty) {
-                      return const Center(child: Text('No appointments yet'));
-                    }
-                    return ListView.builder(
-                      itemCount: list.length,
-                      itemBuilder: (context, index) {
-                        final appt = list[index];
-                        return ListTile(
-                          title: Text(appt.queueToken),
-                          subtitle: Text(appt.dateTime.toLocal().toString()),
-                          onTap: () async {
-                            final res = await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => AppointmentDetailsScreen(appointment: appt),
-                              ),
-                            );
-                            if (res == true) {
-                              // refresh automatically via stream
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, st) => Center(child: Text('Error: $e')),
-                );
-              }),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final apps = ref.watch(appointmentStreamProvider);
+                  return apps.when(
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return const Center(child: Text('No appointments yet'));
+                      }
+                      return ListView.builder(
+                        itemCount: list.length,
+                        itemBuilder: (context, index) {
+                          final appt = list[index];
+                          return ListTile(
+                            title: Text(appt.queueToken),
+                            subtitle: Text(appt.dateTime.toLocal().toString()),
+                            onTap: () async {
+                              final res = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => AppointmentDetailsScreen(
+                                    appointment: appt,
+                                  ),
+                                ),
+                              );
+                              if (res == true) {
+                                // refresh automatically via stream
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, st) => Center(child: Text('Error: $e')),
+                  );
+                },
+              ),
             ),
             AppButton(
               label: 'Book Appointment',
               onPressed: () async {
                 final result = await Navigator.of(context).push(
                   MaterialPageRoute(
-                      builder: (_) => BookAppointmentScreen(applicationId: user?.uid ?? '')),
+                    builder: (_) =>
+                        BookAppointmentScreen(applicationId: user?.uid ?? ''),
+                  ),
                 );
                 if (result == true) {
                   // nothing

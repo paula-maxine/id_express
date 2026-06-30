@@ -6,7 +6,7 @@ class AuditCloudService {
   final FirebaseFirestore _firestore;
 
   AuditCloudService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Log an action to audit trail
   Future<void> logAction(AuditLogModel log) async {
@@ -59,7 +59,9 @@ class AuditCloudService {
           .get();
 
       return result.docs
-          .map((doc) => AuditLogModel.fromJson(doc.data() as Map<String, dynamic>))
+          .map(
+            (doc) => AuditLogModel.fromJson(doc.data() as Map<String, dynamic>),
+          )
           .toList();
     } on FirebaseException catch (e) {
       throw FirestoreException(
@@ -76,8 +78,10 @@ class AuditCloudService {
   }
 
   /// Get audit logs by user
-  Future<List<AuditLogModel>> getAuditLogsByUser(String userId,
-      {int limit = 50}) async {
+  Future<List<AuditLogModel>> getAuditLogsByUser(
+    String userId, {
+    int limit = 50,
+  }) async {
     try {
       final result = await _firestore
           .collection('audit_logs')

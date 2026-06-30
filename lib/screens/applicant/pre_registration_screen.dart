@@ -11,7 +11,8 @@ class PreRegistrationScreen extends ConsumerStatefulWidget {
   const PreRegistrationScreen({super.key});
 
   @override
-  ConsumerState<PreRegistrationScreen> createState() => _PreRegistrationScreenState();
+  ConsumerState<PreRegistrationScreen> createState() =>
+      _PreRegistrationScreenState();
 }
 
 class _PreRegistrationScreenState extends ConsumerState<PreRegistrationScreen> {
@@ -64,8 +65,12 @@ class _PreRegistrationScreenState extends ConsumerState<PreRegistrationScreen> {
           parish: _address.text.trim(),
           village: _address.text.trim(),
         ),
-        parentGuardianName: _parentName.text.trim().isEmpty ? null : _parentName.text.trim(),
-        parentGuardianId: _parentId.text.trim().isEmpty ? null : _parentId.text.trim(),
+        parentGuardianName: _parentName.text.trim().isEmpty
+            ? null
+            : _parentName.text.trim(),
+        parentGuardianId: _parentId.text.trim().isEmpty
+            ? null
+            : _parentId.text.trim(),
         status: 'submitted',
         documentIds: [],
         createdAt: now,
@@ -104,7 +109,9 @@ class _PreRegistrationScreenState extends ConsumerState<PreRegistrationScreen> {
               ),
               TextFormField(
                 controller: _dob,
-                decoration: const InputDecoration(labelText: 'Date of birth (YYYY-MM-DD)'),
+                decoration: const InputDecoration(
+                  labelText: 'Date of birth (YYYY-MM-DD)',
+                ),
                 validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               TextFormField(
@@ -124,11 +131,15 @@ class _PreRegistrationScreenState extends ConsumerState<PreRegistrationScreen> {
               ),
               TextFormField(
                 controller: _parentName,
-                decoration: const InputDecoration(labelText: 'Parent/Guardian Name (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Parent/Guardian Name (optional)',
+                ),
               ),
               TextFormField(
                 controller: _parentId,
-                decoration: const InputDecoration(labelText: 'Parent/Guardian ID (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Parent/Guardian ID (optional)',
+                ),
               ),
               const SizedBox(height: 20),
               if (_error != null)
@@ -137,7 +148,8 @@ class _PreRegistrationScreenState extends ConsumerState<PreRegistrationScreen> {
                 onPressed: _isSubmitting ? null : _submit,
                 child: _isSubmitting
                     ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
                     : const Text('Submit'),
               ),
             ],

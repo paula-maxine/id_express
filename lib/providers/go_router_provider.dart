@@ -26,7 +26,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     redirect: (context, state) async {
-      final isLoading = authState.isLoading;
       final user = authState.whenData((data) => data).value;
       final role = userRole.whenData((data) => data).value;
 
@@ -96,18 +95,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ApplicantDashboard(),
         routes: [
           GoRoute(
-            path: RoutesPaths.preRegistration.replaceFirst('/applicant', '').substring(1),
+            path: RoutesPaths.preRegistration
+                .replaceFirst('/applicant', '')
+                .substring(1),
             builder: (context, state) => const PreRegistrationScreen(),
           ),
           GoRoute(
-            path: RoutesPaths.bookAppointment.replaceFirst('/applicant', '').substring(1),
+            path: RoutesPaths.bookAppointment
+                .replaceFirst('/applicant', '')
+                .substring(1),
             builder: (context, state) {
               // applicationId must be passed via push; default to empty
               return const BookAppointmentScreen(applicationId: '');
             },
           ),
           GoRoute(
-            path: RoutesPaths.appointmentDetails.replaceFirst('/applicant', '').substring(1),
+            path: RoutesPaths.appointmentDetails
+                .replaceFirst('/applicant', '')
+                .substring(1),
             builder: (context, state) {
               // details route not used yet
               return const SizedBox();
@@ -121,11 +126,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OfficerDashboard(),
         routes: [
           GoRoute(
-            path: RoutesPaths.pendingApplications.replaceFirst('/officer', '').substring(1),
+            path: RoutesPaths.pendingApplications
+                .replaceFirst('/officer', '')
+                .substring(1),
             builder: (context, state) => const PendingApplicationsScreen(),
           ),
           GoRoute(
-            path: RoutesPaths.dailyAppointments.replaceFirst('/officer', '').substring(1),
+            path: RoutesPaths.dailyAppointments
+                .replaceFirst('/officer', '')
+                .substring(1),
             builder: (context, state) => const DailyAppointmentsScreen(),
           ),
         ],

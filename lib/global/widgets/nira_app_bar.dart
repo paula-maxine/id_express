@@ -55,17 +55,12 @@ class NiraDrawer extends StatelessWidget {
       child: Column(
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-            ),
+            decoration: BoxDecoration(color: Theme.of(context).primaryColor),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const CircleAvatar(
-                  radius: 24,
-                  child: Icon(Icons.person),
-                ),
+                const CircleAvatar(radius: 24, child: Icon(Icons.person)),
                 const SizedBox(height: 12),
                 Text(
                   userName,
@@ -77,10 +72,7 @@ class NiraDrawer extends StatelessWidget {
                 ),
                 Text(
                   userRole,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -115,9 +107,5 @@ class DrawerItem {
   final IconData icon;
   final VoidCallback onTap;
 
-  DrawerItem({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
+  DrawerItem({required this.label, required this.icon, required this.onTap});
 }

@@ -63,14 +63,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           setState(() => _isLoading = true);
                           // Mock reset password logic
                           await Future.delayed(const Duration(seconds: 2));
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Password reset link sent!'),
-                              ),
-                            );
-                            context.go(RoutesPaths.login);
-                          }
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Password reset link sent!'),
+                            ),
+                          );
+                          context.go(RoutesPaths.login);
                         }
                       },
                 child: _isLoading

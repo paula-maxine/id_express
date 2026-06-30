@@ -3,8 +3,10 @@ import '../data/model/document_model.dart';
 import 'service_providers.dart';
 
 // Documents for an application
-final documentsProvider =
-    FutureProvider.family<List<DocumentModel>, String>((ref, appId) async {
+final documentsProvider = FutureProvider.family<List<DocumentModel>, String>((
+  ref,
+  appId,
+) async {
   final docService = ref.watch(documentCloudServiceProvider);
   return docService.getDocumentsByApplication(appId);
 });
@@ -12,6 +14,6 @@ final documentsProvider =
 // Stream documents for an application
 final documentsStreamProvider =
     StreamProvider.family<List<DocumentModel>, String>((ref, appId) {
-  final docService = ref.watch(documentCloudServiceProvider);
-  return docService.streamDocumentsByApplication(appId);
-});
+      final docService = ref.watch(documentCloudServiceProvider);
+      return docService.streamDocumentsByApplication(appId);
+    });

@@ -6,7 +6,7 @@ class ServiceCentreCloudService {
   final FirebaseFirestore _firestore;
 
   ServiceCentreCloudService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Get all service centres
   Future<List<ServiceCentreModel>> getAllCentres() async {
@@ -60,8 +60,7 @@ class ServiceCentreCloudService {
   /// Get service centre by ID
   Future<ServiceCentreModel?> getCentre(String id) async {
     try {
-      final doc =
-          await _firestore.collection('service_centres').doc(id).get();
+      final doc = await _firestore.collection('service_centres').doc(id).get();
       if (!doc.exists) return null;
       return ServiceCentreModel.fromJson(doc.data()!);
     } on FirebaseException catch (e) {
@@ -86,10 +85,10 @@ class ServiceCentreCloudService {
           .where('is_active', isEqualTo: true)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => ServiceCentreModel.fromJson(doc.data()))
-            .toList();
-      });
+            return snapshot.docs
+                .map((doc) => ServiceCentreModel.fromJson(doc.data()))
+                .toList();
+          });
     } catch (e) {
       throw FirestoreException(
         message: 'Failed to stream service centres: $e',

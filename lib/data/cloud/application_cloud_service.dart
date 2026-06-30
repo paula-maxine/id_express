@@ -10,10 +10,12 @@ class ApplicationCloudService {
   final FirebaseFirestore _firestore;
 
   ApplicationCloudService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Create a new application
-  Future<ApplicationModel> createApplication(ApplicationModel application) async {
+  Future<ApplicationModel> createApplication(
+    ApplicationModel application,
+  ) async {
     try {
       final docRef = _firestore.collection('applications').doc();
       final appWithId = application.copyWith(id: docRef.id);
@@ -77,10 +79,10 @@ class ApplicationCloudService {
           .orderBy('created_at', descending: true)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => ApplicationModel.fromJson(doc.data()))
-            .toList();
-      });
+            return snapshot.docs
+                .map((doc) => ApplicationModel.fromJson(doc.data()))
+                .toList();
+          });
     } catch (e) {
       throw FirestoreException(
         message: 'Failed to stream applications: $e',
@@ -97,10 +99,10 @@ class ApplicationCloudService {
           .where('status', isEqualTo: status)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => ApplicationModel.fromJson(doc.data()))
-            .toList();
-      });
+            return snapshot.docs
+                .map((doc) => ApplicationModel.fromJson(doc.data()))
+                .toList();
+          });
     } catch (e) {
       throw FirestoreException(
         message: 'Failed to stream applications by status: $e',
@@ -118,10 +120,10 @@ class ApplicationCloudService {
           .orderBy('created_at', descending: true)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => ApplicationModel.fromJson(doc.data()))
-            .toList();
-      });
+            return snapshot.docs
+                .map((doc) => ApplicationModel.fromJson(doc.data()))
+                .toList();
+          });
     } catch (e) {
       throw FirestoreException(
         message: 'Failed to stream pending applications: $e',
@@ -159,7 +161,10 @@ class ApplicationCloudService {
           action: 'application_status_updated',
           targetCollection: 'applications',
           targetDocId: id,
-          details: {'new_status': newStatus, 'rejection_reason': rejectionReason},
+          details: {
+            'new_status': newStatus,
+            'rejection_reason': rejectionReason,
+          },
           timestamp: DateTime.now(),
         );
         await auditSvc.logAction(audit);

@@ -11,6 +11,6 @@ final auditLogProvider = FutureProvider<List<AuditLogModel>>((ref) async {
 // Audit logs by user provider
 final auditLogsByUserProvider =
     FutureProvider.family<List<AuditLogModel>, String>((ref, userId) async {
-  final auditService = ref.watch(auditCloudServiceProvider);
-  return auditService.getAuditLogsByUser(userId);
-});
+      final auditService = ref.watch(auditCloudServiceProvider);
+      return auditService.getAuditLogsByUser(userId);
+    });

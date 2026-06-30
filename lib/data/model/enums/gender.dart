@@ -1,7 +1,4 @@
-enum Gender {
-  male,
-  female,
-}
+enum Gender { male, female }
 
 extension GenderExtension on Gender {
   String get displayName {

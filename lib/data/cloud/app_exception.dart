@@ -3,22 +3,14 @@ class AppException implements Exception {
   final String? code;
   final dynamic originalException;
 
-  AppException({
-    required this.message,
-    this.code,
-    this.originalException,
-  });
+  AppException({required this.message, this.code, this.originalException});
 
   @override
   String toString() => message;
 }
 
 class AuthException extends AppException {
-  AuthException({
-    required super.message,
-    super.code,
-    super.originalException,
-  });
+  AuthException({required super.message, super.code, super.originalException});
 }
 
 class FirestoreException extends AppException {

@@ -38,29 +38,20 @@ class _DocumentsListScreenState extends State<DocumentsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Documents'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('My Documents'), centerTitle: true),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _documentsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('No documents uploaded yet'),
-            );
+            return const Center(child: Text('No documents uploaded yet'));
           }
 
           final documents = snapshot.data!;
@@ -121,8 +112,8 @@ class _DocumentsListScreenState extends State<DocumentsListScreen> {
                           color: _getStatusColor(status) == 'Approved'
                               ? Colors.green[100]
                               : _getStatusColor(status) == 'Rejected'
-                                  ? Colors.red[100]
-                                  : Colors.orange[100],
+                              ? Colors.red[100]
+                              : Colors.orange[100],
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -132,8 +123,8 @@ class _DocumentsListScreenState extends State<DocumentsListScreen> {
                             color: _getStatusColor(status) == 'Approved'
                                 ? Colors.green[700]
                                 : _getStatusColor(status) == 'Rejected'
-                                    ? Colors.red[700]
-                                    : Colors.orange[700],
+                                ? Colors.red[700]
+                                : Colors.orange[700],
                           ),
                         ),
                       ),

@@ -5,7 +5,7 @@ class AuthCloudService {
   final FirebaseAuth _firebaseAuth;
 
   AuthCloudService({FirebaseAuth? firebaseAuth})
-      : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
   /// Sign up with email and password
   Future<User?> signUp({
@@ -29,18 +29,12 @@ class AuthCloudService {
         originalException: e,
       );
     } catch (e) {
-      throw AuthException(
-        message: 'Sign up failed: $e',
-        originalException: e,
-      );
+      throw AuthException(message: 'Sign up failed: $e', originalException: e);
     }
   }
 
   /// Login with email and password
-  Future<User?> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<User?> login({required String email, required String password}) async {
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email.trim(),
@@ -55,10 +49,7 @@ class AuthCloudService {
         originalException: e,
       );
     } catch (e) {
-      throw AuthException(
-        message: 'Login failed: $e',
-        originalException: e,
-      );
+      throw AuthException(message: 'Login failed: $e', originalException: e);
     }
   }
 
@@ -67,10 +58,7 @@ class AuthCloudService {
     try {
       await _firebaseAuth.signOut();
     } catch (e) {
-      throw AuthException(
-        message: 'Logout failed: $e',
-        originalException: e,
-      );
+      throw AuthException(message: 'Logout failed: $e', originalException: e);
     }
   }
 

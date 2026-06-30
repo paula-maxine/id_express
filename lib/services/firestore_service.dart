@@ -63,7 +63,10 @@ class FirestoreService {
   // Get user profile
   Future<Map<String, dynamic>?> getUserProfile(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
       return doc.data() as Map<String, dynamic>?;
     } catch (e) {
       throw 'Error fetching user profile: $e';

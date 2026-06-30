@@ -28,7 +28,11 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  final List<String> _documentTypes = ['National ID', 'Passport', 'Driver License'];
+  final List<String> _documentTypes = [
+    'National ID',
+    'Passport',
+    'Driver License',
+  ];
 
   @override
   void dispose() {
@@ -164,10 +168,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   value: 'documents',
                   child: Text('My Documents'),
                 ),
-                const PopupMenuItem(
-                  value: 'logout',
-                  child: Text('Logout'),
-                ),
+                const PopupMenuItem(value: 'logout', child: Text('Logout')),
               ],
             ),
           ],
@@ -180,10 +181,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
               const SizedBox(height: 20),
               const Text(
                 'Upload Document',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               // Document Type
@@ -197,10 +195,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   ),
                 ),
                 items: _documentTypes.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type),
-                  );
+                  return DropdownMenuItem(value: type, child: Text(type));
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -301,10 +296,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.red, fontSize: 14),
                   ),
                 ),
               const SizedBox(height: 32),
@@ -315,7 +307,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   onPressed: _isLoading ? null : _uploadDocument,
                   child: _isLoading
                       ? const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         )
                       : const Text(
                           'Upload Document',
