@@ -84,8 +84,8 @@ class ApplicationService {
         .doc(applicationId)
         .update({
           'status': status.name,
-          if (officerNotes != null) 'officer_notes': officerNotes,
-          if (rejectionReason != null) 'rejection_reason': rejectionReason,
+          'officer_notes': ?officerNotes,
+          'rejection_reason': ?rejectionReason,
           'updated_at': DateTime.now().toIso8601String(),
           'reviewed_by': uid,
         });

@@ -14,27 +14,31 @@ Run all commands from the project root (`id_express/`).
 The typical end-to-end flow for shipping a new test build:
 
 ```bash
-# 1. Bump the version (1.1.0+2 -> 1.2.0+3, updates web/version.txt)
-dart scripts/bump_version.dart
-
-# 2. Build both platforms and upload to AppSend
 dart scripts/deploy_testing.dart --build
 ```
 
-The second command prints a ready-to-share tester message with the version
-number and install links for Android and iOS.
+That's it — `deploy_testing.dart` bumps the version automatically (runs
+`bump_version.dart` for you, e.g. `1.1.0+2 -> 1.2.0+3`, updating
+`web/version.txt` too) before building and uploading. It prints a
+ready-to-share tester message with the version number and install links for
+Android and iOS.
+
+Pass `--no-bump` if you want to rebuild/reupload the current version without
+bumping (e.g. retrying a failed upload).
 
 ## deploy_testing.dart
 
-Builds release artifacts, uploads them to AppSend, and prints install links
-plus a copy-paste message for testers.
+Bumps the version, builds release artifacts, uploads them to AppSend, and
+prints install links plus a copy-paste message for testers.
 
 ### What it does
 
-1. Reads the `version+build` string (e.g. `1.2.0+3`) from `pubspec.yaml`.
-2. (With `--build`) runs the Flutter release builds.
-3. Uploads the IPA and/or APK to `https://api.appsend.dev/v1/uploads/`.
-4. Prints each install link (`https://appsend.dev/i/{uid}`) and a formatted
+1. Runs `scripts/bump_version.dart` (unless `--no-bump` is passed).
+2. Reads the resulting `version+build` string (e.g. `1.2.0+3`) from
+   `pubspec.yaml`.
+3. (With `--build`) runs the Flutter release builds.
+4. Uploads the IPA and/or APK to `https://api.appsend.dev/v1/uploads/`.
+5. Prints each install link (`https://appsend.dev/i/{uid}`) and a formatted
    tester message.
 
 ### Usage
@@ -46,6 +50,7 @@ dart scripts/deploy_testing.dart [options]
 | Option | Description |
 | --- | --- |
 | `--build` | Run the Flutter release builds first (IPA + split-per-abi APK). Omit to upload artifacts already on disk. |
+| `--no-bump` | Skip the automatic version bump. |
 | `--ios-only` | Only build/upload iOS. |
 | `--android-only` | Only build/upload Android. |
 | `--testers=a@x.com,b@y.com` | Invite testers by email (comma-separated, **max 5**). Forwarded to AppSend. |
@@ -54,11 +59,14 @@ dart scripts/deploy_testing.dart [options]
 ### Examples
 
 ```bash
-# Build everything fresh and upload both platforms
+# Bump version, build everything fresh, and upload both platforms
 dart scripts/deploy_testing.dart --build
 
-# Upload artifacts already sitting on disk (no rebuild)
+# Upload artifacts already sitting on disk (still bumps the version first)
 dart scripts/deploy_testing.dart
+
+# Rebuild/reupload the current version without bumping
+dart scripts/deploy_testing.dart --build --no-bump
 
 # iOS only, and invite a tester
 dart scripts/deploy_testing.dart --ios-only --testers=me@example.com
@@ -129,7 +137,9 @@ The script looks for builds at these locations:
 ## bump_version.dart
 
 Bumps `pubspec.yaml` and updates `web/version.txt` (the cache-busting token
-read by the inline loader in `web/index.html`).
+read by the inline loader in `web/index.html`). Runs automatically as the
+first step of `deploy_testing.dart` (unless `--no-bump` is passed), but can
+also be run standalone:
 
 ```bash
 dart scripts/bump_version.dart

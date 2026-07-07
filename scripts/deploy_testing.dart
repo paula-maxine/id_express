@@ -15,6 +15,8 @@
 // Options:
 //   --build            Run flutter builds first (IPA + split-per-abi APK).
 //                      Omit to upload the artifacts already on disk.
+//   --no-bump          Skip the version bump (scripts/bump_version.dart runs
+//                      by default before every build/upload).
 //   --android-only     Only build/upload Android.
 //   --ios-only         Only build/upload iOS.
 //   --testers=a@x.com,b@y.com   Invite testers (max 5, forwarded to AppSend).
@@ -24,6 +26,7 @@
 //   dart scripts/deploy_testing.dart --build
 //   dart scripts/deploy_testing.dart            # upload existing artifacts
 //   dart scripts/deploy_testing.dart --ios-only --testers=me@x.com
+//   dart scripts/deploy_testing.dart --build --no-bump   # reupload same version
 
 import 'dart:convert';
 import 'dart:io';
@@ -32,7 +35,10 @@ const _uploadEndpoint = 'https://api.appsend.dev/v1/uploads/';
 const _installUrlBase = 'https://appsend.dev/i';
 const _maxUploadBytes = 150 * 1024 * 1024; // AppSend 150MB cap.
 
-const _ipaPath = 'build/ios/ipa/ID Express.ipa';
+// Flutter names the IPA after the Xcode product name, which can drift from
+// the app's display name — resolve whatever .ipa lands here rather than
+// hardcoding a filename.
+const _ipaDir = 'build/ios/ipa';
 // --split-per-abi writes here; arm64-v8a is the target for modern phones.
 const _apkArm64Path =
     'build/app/outputs/flutter-apk/app-arm64-v8a-release.apk';
@@ -52,6 +58,7 @@ Future<void> main(List<String> args) async {
   }
 
   final doBuild = has('build');
+  final noBump = has('no-bump');
   final iosOnly = has('ios-only');
   final androidOnly = has('android-only');
   final testers = value('testers');
@@ -59,6 +66,8 @@ Future<void> main(List<String> args) async {
 
   final doAndroid = !iosOnly;
   final doIos = !androidOnly;
+
+  if (!noBump) await _bumpVersion();
 
   final version = _readVersion();
   final message = messageOverride ?? 'ID Express $version test build';
@@ -92,7 +101,7 @@ Future<void> main(List<String> args) async {
   }
 
   if (doIos) {
-    final ipa = File(_ipaPath);
+    final ipa = _resolveIpa();
     results.add(
       await _upload(
         platform: 'iOS',
@@ -104,6 +113,12 @@ Future<void> main(List<String> args) async {
   }
 
   _printSummary(version: version, results: results);
+}
+
+/// Runs scripts/bump_version.dart so every deploy ships a fresh version+build.
+Future<void> _bumpVersion() async {
+  _log('Bumping version (dart scripts/bump_version.dart)...');
+  await _run('dart', ['scripts/bump_version.dart']);
 }
 
 /// Reads the "version+build" string from pubspec.yaml (e.g. 1.1.0+2).
@@ -131,6 +146,22 @@ Future<void> _buildApk() async {
 
 /// Prefers the split arm64-v8a APK; falls back to the fat APK if that is the
 /// only artifact present. Fails clearly if neither exists.
+File _resolveIpa() {
+  final dir = Directory(_ipaDir);
+  if (dir.existsSync()) {
+    final ipas = dir
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.toLowerCase().endsWith('.ipa'))
+        .toList();
+    if (ipas.length > 1) {
+      _log('WARNING: multiple .ipa files in $_ipaDir; using ${ipas.first.path}.');
+    }
+    if (ipas.isNotEmpty) return ipas.first;
+  }
+  _fail('No IPA found in $_ipaDir (rerun with --build).');
+}
+
 File _resolveApk() {
   final arm64 = File(_apkArm64Path);
   if (arm64.existsSync()) return arm64;
