@@ -40,11 +40,71 @@ class AuthService {
           .doc(userCredential.user!.uid)
           .get();
 
-      if (!userDoc.exists) return null;
+      if (!userDoc.exists) {
+        final authUser = userCredential.user!;
+        final user = UserModel(
+          userId: authUser.uid,
+          email: authUser.email ?? email,
+          phoneNumber: authUser.phoneNumber ?? '',
+          displayName: authUser.displayName ?? '',
+          role: UserRole.applicant,
+          isEmailVerified: authUser.emailVerified,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
-      return UserModel.fromMap(userDoc.data() ?? {});
-    } on FirebaseAuthException catch (e) {
-      Printer.error('Sign in error', error: e);
+        await _firestore
+            .collection('users')
+            .doc(user.userId)
+            .set(user.toMap());
+
+        return user;
+      }
+
+      // Doc exists — but self-heal if it is malformed. A doc missing its
+      // `user_id` (or with a mismatched one) makes every ownership rule
+      // (`applicant_id == request.auth.uid`) and role lookup fail, locking
+      // the user out under the deployed security rules. Repair the identity
+      // fields in place without ever escalating the role.
+      final data = userDoc.data() ?? {};
+      final storedUid = data['user_id'] as String?;
+      if (storedUid == null || storedUid != userCredential.user!.uid) {
+        final authUser = userCredential.user!;
+        final repair = <String, dynamic>{
+          'user_id': authUser.uid,
+          'email': (data['email'] as String?)?.isNotEmpty == true
+              ? data['email']
+              : authUser.email ?? email,
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        // Preserve an existing valid role; only default when absent/empty.
+        if ((data['role'] as String?)?.isNotEmpty != true) {
+          repair['role'] = UserRole.applicant.name;
+        }
+        await _firestore
+            .collection('users')
+            .doc(authUser.uid)
+            .set(repair, SetOptions(merge: true));
+
+        Printer.info(
+          'Repaired malformed user doc for ${authUser.uid}',
+          tag: 'AuthService',
+        );
+
+        return UserModel.fromMap({...data, ...repair});
+      }
+
+      return UserModel.fromMap(data);
+    } on FirebaseAuthException catch (e, s) {
+      Printer.error('Sign in error', tag: 'AuthService', error: e, stackTrace: s);
+      rethrow;
+    } catch (e, s) {
+      Printer.error(
+        'Unexpected sign in error',
+        tag: 'AuthService',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -79,24 +139,60 @@ class AuthService {
       await _firestore.collection('users').doc(user.userId).set(user.toMap());
 
       return user;
-    } on FirebaseAuthException catch (e) {
-      Printer.error('Register error', error: e);
+    } on FirebaseAuthException catch (e, s) {
+      Printer.error('Register error', tag: 'AuthService', error: e, stackTrace: s);
+      rethrow;
+    } catch (e, s) {
+      Printer.error(
+        'Unexpected register error',
+        tag: 'AuthService',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
 
   /// Sign out
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      await _auth.signOut();
+    } catch (e, s) {
+      Printer.error('Sign out error', tag: 'AuthService', error: e, stackTrace: s);
+      rethrow;
+    }
   }
 
   /// Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e, s) {
+      Printer.error(
+        'Password reset email error',
+        tag: 'AuthService',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
   }
 
   /// Update user profile
   Future<void> updateUserProfile(UserModel user) async {
-    await _firestore.collection('users').doc(user.userId).update(user.toMap());
+    try {
+      await _firestore
+          .collection('users')
+          .doc(user.userId)
+          .update(user.toMap());
+    } catch (e, s) {
+      Printer.error(
+        'Update user profile error',
+        tag: 'AuthService',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
   }
 }

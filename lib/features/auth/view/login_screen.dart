@@ -17,26 +17,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final email = ref.read(emailProvider);
     final password = ref.read(passwordProvider);
-    ref.read(authLoadingProvider.notifier).set(true);
-    ref.read(authErrorProvider.notifier).clear();
+
+    // Capture notifiers before the async gap so they remain usable even if
+    // this widget is unmounted (e.g. after navigating away on success).
+    final loadingNotifier = ref.read(authLoadingProvider.notifier);
+    final errorNotifier = ref.read(authErrorProvider.notifier);
+    final authService = ref.read(authServiceProvider);
+
+    loadingNotifier.set(true);
+    errorNotifier.clear();
 
     try {
-      final user = await ref
-          .read(authServiceProvider)
-          .signInWithEmailAndPassword(email: email, password: password);
+      final user = await authService.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
       if (user != null && mounted) {
         // Navigate based on user role
-        if (user.isOfficer) {
-          context.go(officerHomePath);
-        } else {
-          context.go(applicantHomePath);
+        switch (user.role) {
+          case UserRole.applicant:
+            context.go(applicantHomePath);
+          case UserRole.officer:
+          case UserRole.supervisor:
+          case UserRole.admin:
+            context.go(officerHomePath);
         }
       }
     } on FirebaseAuthException catch (e) {
-      ref.read(authErrorProvider.notifier).set(e.message ?? 'Login failed');
+      errorNotifier.set(e.message ?? 'Login failed');
     } finally {
-      ref.read(authLoadingProvider.notifier).set(false);
+      loadingNotifier.set(false);
     }
   }
 

@@ -55,6 +55,53 @@ final class PendingApplicationsProvider
 String _$pendingApplicationsHash() =>
     r'9b085c35dba41b63ec3be8dcf209f9e2981edea6';
 
+/// Approved applications (for officer/admin visibility)
+
+@ProviderFor(approvedApplications)
+final approvedApplicationsProvider = ApprovedApplicationsProvider._();
+
+/// Approved applications (for officer/admin visibility)
+
+final class ApprovedApplicationsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<ApplicationModel>>,
+          List<ApplicationModel>,
+          Stream<List<ApplicationModel>>
+        >
+    with
+        $FutureModifier<List<ApplicationModel>>,
+        $StreamProvider<List<ApplicationModel>> {
+  /// Approved applications (for officer/admin visibility)
+  ApprovedApplicationsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'approvedApplicationsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$approvedApplicationsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<ApplicationModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<ApplicationModel>> create(Ref ref) {
+    return approvedApplications(ref);
+  }
+}
+
+String _$approvedApplicationsHash() =>
+    r'ff2526a59f99cb07c84b3d5f91fa56c621fb878d';
+
 /// Applications assigned to / reviewed by the current officer
 
 @ProviderFor(officerApplications)
@@ -147,7 +194,7 @@ abstract class _$OfficerStatusFilter extends $Notifier<ApplicationStatus?> {
   ApplicationStatus? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ApplicationStatus?, ApplicationStatus?>;
     final element =
         ref.element
@@ -157,7 +204,7 @@ abstract class _$OfficerStatusFilter extends $Notifier<ApplicationStatus?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -206,7 +253,7 @@ abstract class _$ReviewActionLoading extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -216,7 +263,7 @@ abstract class _$ReviewActionLoading extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -264,7 +311,7 @@ abstract class _$ReviewActionError extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -274,7 +321,7 @@ abstract class _$ReviewActionError extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -322,7 +369,7 @@ abstract class _$RejectionReason extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -332,7 +379,7 @@ abstract class _$RejectionReason extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -380,7 +427,7 @@ abstract class _$OfficerNotes extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -390,6 +437,6 @@ abstract class _$OfficerNotes extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

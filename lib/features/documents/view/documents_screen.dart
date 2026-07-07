@@ -142,7 +142,13 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
             filePath: file.path,
             fileName: file.name,
           );
-    } catch (e) {
+    } catch (e, s) {
+      Printer.error(
+        'Document upload failed',
+        tag: 'Documents',
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
         ScaffoldMessenger.of(
           context,

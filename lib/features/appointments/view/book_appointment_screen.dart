@@ -211,33 +211,42 @@ class BookAppointmentScreen extends ConsumerWidget {
     DateTime date,
     String slot,
   ) async {
-    ref.read(bookingLoadingProvider.notifier).set(true);
-    ref.read(bookingErrorProvider.notifier).clear();
+    // Capture notifiers and messenger before the async gap so they remain
+    // usable even if this widget is unmounted after popping on success.
+    final loadingNotifier = ref.read(bookingLoadingProvider.notifier);
+    final errorNotifier = ref.read(bookingErrorProvider.notifier);
+    final appointmentService = ref.read(appointmentServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+
+    loadingNotifier.set(true);
+    errorNotifier.clear();
 
     try {
-      await ref
-          .read(appointmentServiceProvider)
-          .bookAppointment(
-            applicationId: applicationId,
-            centerId: center.id,
-            centerName: center.name,
-            centerAddress: center.address,
-            appointmentDate: date,
-            timeSlot: slot,
-          );
+      await appointmentService.bookAppointment(
+        applicationId: applicationId,
+        centerId: center.id,
+        centerName: center.name,
+        centerAddress: center.address,
+        appointmentDate: date,
+        timeSlot: slot,
+      );
 
       if (context.mounted) {
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Appointment booked successfully!')),
-        );
       }
-    } catch (e) {
-      ref
-          .read(bookingErrorProvider.notifier)
-          .set('Booking failed. Please try again.');
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Appointment booked successfully!')),
+      );
+    } catch (e, s) {
+      Printer.error(
+        'Appointment booking failed',
+        tag: 'BookAppointment',
+        error: e,
+        stackTrace: s,
+      );
+      errorNotifier.set('Booking failed. Please try again.');
     } finally {
-      ref.read(bookingLoadingProvider.notifier).set(false);
+      loadingNotifier.set(false);
     }
   }
 }

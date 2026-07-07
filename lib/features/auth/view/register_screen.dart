@@ -20,28 +20,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final phoneNumber = ref.read(phoneNumberProvider);
     final displayName = ref.read(displayNameProvider);
 
-    ref.read(authLoadingProvider.notifier).set(true);
-    ref.read(authErrorProvider.notifier).clear();
+    // Capture notifiers before the async gap so they remain usable even if
+    // this widget is unmounted (e.g. after navigating away on success).
+    final loadingNotifier = ref.read(authLoadingProvider.notifier);
+    final errorNotifier = ref.read(authErrorProvider.notifier);
+    final authService = ref.read(authServiceProvider);
+
+    loadingNotifier.set(true);
+    errorNotifier.clear();
 
     try {
-      final user = await ref
-          .read(authServiceProvider)
-          .registerWithEmailAndPassword(
-            email: email,
-            password: password,
-            phoneNumber: phoneNumber,
-            displayName: displayName,
-          );
+      final user = await authService.registerWithEmailAndPassword(
+        email: email,
+        password: password,
+        phoneNumber: phoneNumber,
+        displayName: displayName,
+      );
 
       if (user != null && mounted) {
         context.go(applicantHomePath);
       }
     } on FirebaseAuthException catch (e) {
-      ref
-          .read(authErrorProvider.notifier)
-          .set(e.message ?? 'Registration failed');
+      errorNotifier.set(e.message ?? 'Registration failed');
     } finally {
-      ref.read(authLoadingProvider.notifier).set(false);
+      loadingNotifier.set(false);
     }
   }
 

@@ -27,12 +27,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCWbf2uqbvfSP8fxGO-hOSilG9l_8AJhMc',
-    appId: '1:95235618414:web:a70053241ac2aebec6d87f',
+    appId: '1:95235618414:web:672b7d99abc1f3b7c6d87f',
     messagingSenderId: '95235618414',
     projectId: 'id-express-paula',
     authDomain: 'id-express-paula.firebaseapp.com',
     storageBucket: 'id-express-paula.firebasestorage.app',
-    measurementId: 'G-CPLMW0BEYV',
+    measurementId: 'G-327YNSNGDL',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -42,7 +42,6 @@ class DefaultFirebaseOptions {
     projectId: 'id-express-paula',
     storageBucket: 'id-express-paula.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDtN3CX65AmeqszU4tuPFpzNLAf1JBHiE8',
     appId: '1:95235618414:ios:c3a1c5564058142ec6d87f',
@@ -51,7 +50,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'id-express-paula.firebasestorage.app',
     iosBundleId: 'com.example.idExpress',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'YOUR_MACOS_API_KEY',
     appId: 'YOUR_MACOS_APP_ID',

@@ -1,4 +1,5 @@
 export 'auth/exporter.dart';
+export 'admin/exporter.dart';
 export 'applicant_home/exporter.dart';
 export 'application_form/exporter.dart';
 export 'applications/exporter.dart';

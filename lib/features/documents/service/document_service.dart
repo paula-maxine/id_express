@@ -31,32 +31,47 @@ class DocumentService {
     final fileRef = FirebaseStorage.instance.ref(storagePath);
     final task = fileRef.putFile(File(filePath));
 
-    task.snapshotEvents.listen((snapshot) {
+    // Track upload progress. Keep a handle to the subscription so it is
+    // cancelled once the upload settles — an uncancelled subscription can fire
+    // after this provider is disposed and push state into a torn-down tree.
+    final progressSub = task.snapshotEvents.listen((snapshot) {
+      if (snapshot.totalBytes <= 0) return;
       final progress = snapshot.bytesTransferred / snapshot.totalBytes;
       ref.read(uploadProgressProvider.notifier).set(progress);
     });
 
-    await task;
-    final downloadUrl = await fileRef.getDownloadURL();
+    try {
+      await task;
+      final downloadUrl = await fileRef.getDownloadURL();
 
-    ref.read(uploadProgressProvider.notifier).clear();
+      final document = DocumentModel(
+        documentId: docId,
+        applicationId: applicationId,
+        applicantId: uid,
+        documentType: documentType,
+        fileUrl: downloadUrl,
+        fileName: fileName,
+        uploadedAt: DateTime.now(),
+      );
 
-    final document = DocumentModel(
-      documentId: docId,
-      applicationId: applicationId,
-      applicantId: uid,
-      documentType: documentType,
-      fileUrl: downloadUrl,
-      fileName: fileName,
-      uploadedAt: DateTime.now(),
-    );
+      await FirebaseFirestore.instance
+          .collection('documents')
+          .doc(docId)
+          .set(document.toMap());
 
-    await FirebaseFirestore.instance
-        .collection('documents')
-        .doc(docId)
-        .set(document.toMap());
-
-    return document;
+      return document;
+    } catch (e, s) {
+      Printer.error(
+        'Failed to upload document "$fileName"',
+        tag: 'DocumentService',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    } finally {
+      await progressSub.cancel();
+      ref.read(uploadProgressProvider.notifier).clear();
+    }
   }
 
   /// Deletes a document record from Firestore (and attempts Storage deletion)
@@ -64,8 +79,15 @@ class DocumentService {
     // Best-effort deletion from storage using the fileUrl
     try {
       await FirebaseStorage.instance.refFromURL(document.fileUrl).delete();
-    } catch (_) {
-      // Storage deletion is best-effort; proceed to Firestore delete
+    } catch (e, s) {
+      // Storage deletion is best-effort; proceed to Firestore delete, but log
+      // the failure so it is visible in the debug console.
+      Printer.error(
+        'Failed to delete storage object for document ${document.documentId}',
+        tag: 'DocumentService',
+        error: e,
+        stackTrace: s,
+      );
     }
 
     await FirebaseFirestore.instance

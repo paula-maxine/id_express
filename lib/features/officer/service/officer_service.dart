@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../app_exporter.dart';
+import '../../../data/cloud/audit_cloud_service.dart';
+import '../../../data/model/audit_log_model.dart' as legacy;
 
 part 'officer_service.g.dart';
 
@@ -25,33 +27,85 @@ class OfficerReviewService {
   Future<void> approve({
     required String applicationId,
     required String notes,
-  }) => ref
-      .read(applicationServiceProvider)
-      .updateStatus(
-        applicationId: applicationId,
-        status: ApplicationStatus.approved,
-        officerComment: notes.isEmpty ? null : notes,
-      );
+  }) async {
+    await ref
+        .read(applicationServiceProvider)
+        .updateStatus(
+          applicationId: applicationId,
+          status: ApplicationStatus.approved,
+          officerNotes: notes.isEmpty ? null : notes,
+        );
+    await _logAction(
+      action: 'application_approved',
+      applicationId: applicationId,
+      details: {'notes': notes},
+    );
+  }
 
   /// Rejects an application with a reason
   Future<void> reject({
     required String applicationId,
     required String reason,
-  }) => ref
-      .read(applicationServiceProvider)
-      .updateStatus(
-        applicationId: applicationId,
-        status: ApplicationStatus.rejected,
-        officerComment: reason,
-      );
+  }) async {
+    await ref
+        .read(applicationServiceProvider)
+        .updateStatus(
+          applicationId: applicationId,
+          status: ApplicationStatus.rejected,
+          rejectionReason: reason,
+        );
+    await _logAction(
+      action: 'application_rejected',
+      applicationId: applicationId,
+      details: {'reason': reason},
+    );
+  }
 
   /// Marks biometrics as captured
-  Future<void> markBiometricsCaptured(String applicationId) => ref
-      .read(applicationServiceProvider)
-      .updateStatus(
-        applicationId: applicationId,
-        status: ApplicationStatus.biometricCaptured,
+  Future<void> markBiometricsCaptured(String applicationId) async {
+    await ref
+        .read(applicationServiceProvider)
+        .updateStatus(
+          applicationId: applicationId,
+          status: ApplicationStatus.biometricCaptured,
+        );
+    await _logAction(
+      action: 'biometrics_captured',
+      applicationId: applicationId,
+    );
+  }
+
+  /// Writes an audit trail entry for an officer review action
+  Future<void> _logAction({
+    required String action,
+    required String applicationId,
+    Map<String, dynamic>? details,
+  }) async {
+    final officer = ref.read(currentUserProvider).value;
+    try {
+      await AuditCloudService().logAction(
+        legacy.AuditLogModel(
+          id: const Uuid().v4(),
+          userId: officer?.userId ?? '',
+          userRole: officer?.role.name ?? '',
+          action: action,
+          targetCollection: 'applications',
+          targetDocId: applicationId,
+          details: details,
+          timestamp: DateTime.now(),
+        ),
       );
+    } catch (e, s) {
+      // Audit logging is best-effort and must not block the review action,
+      // but log the failure so it is visible in the debug console.
+      Printer.error(
+        'Failed to write "$action" audit log',
+        tag: 'OfficerReviewService',
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
 }
 
 /// Provides the [OfficerReviewService]

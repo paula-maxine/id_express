@@ -22,6 +22,19 @@ Stream<List<ApplicationModel>> pendingApplications(Ref ref) {
       );
 }
 
+/// Approved applications (for officer/admin visibility)
+@riverpod
+Stream<List<ApplicationModel>> approvedApplications(Ref ref) {
+  return FirebaseFirestore.instance
+      .collection('applications')
+      .where('status', isEqualTo: ApplicationStatus.approved.name)
+      .orderBy('updated_at', descending: true)
+      .snapshots()
+      .map(
+        (s) => s.docs.map((d) => ApplicationModel.fromMap(d.data())).toList(),
+      );
+}
+
 /// Applications assigned to / reviewed by the current officer
 @riverpod
 Stream<List<ApplicationModel>> officerApplications(Ref ref) {

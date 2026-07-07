@@ -74,7 +74,8 @@ class ApplicationService {
   Future<void> updateStatus({
     required String applicationId,
     required ApplicationStatus status,
-    String? officerComment,
+    String? officerNotes,
+    String? rejectionReason,
   }) async {
     final uid = ref.read(userIdProvider);
 
@@ -83,7 +84,8 @@ class ApplicationService {
         .doc(applicationId)
         .update({
           'status': status.name,
-          'officer_comment': officerComment,
+          if (officerNotes != null) 'officer_notes': officerNotes,
+          if (rejectionReason != null) 'rejection_reason': rejectionReason,
           'updated_at': DateTime.now().toIso8601String(),
           'reviewed_by': uid,
         });

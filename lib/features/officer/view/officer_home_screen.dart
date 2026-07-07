@@ -9,12 +9,18 @@ class OfficerHomeScreen extends ConsumerWidget {
     (label: 'All Pending', value: null),
     (label: 'New', value: ApplicationStatus.submitted),
     (label: 'In Review', value: ApplicationStatus.underReview),
+    (label: 'Approved', value: ApplicationStatus.approved),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pendingAsync = ref.watch(pendingApplicationsProvider);
     final activeFilter = ref.watch(officerStatusFilterProvider);
+    final isApprovedFilter = activeFilter == ApplicationStatus.approved;
+    final applicationsAsync = isApprovedFilter
+        ? ref.watch(approvedApplicationsProvider)
+        : ref.watch(pendingApplicationsProvider);
+    final currentUser = ref.watch(currentUserProvider).value;
+    final isAdmin = currentUser?.role == UserRole.admin;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -22,6 +28,12 @@ class OfficerHomeScreen extends ConsumerWidget {
         title: const Text('Officer Dashboard'),
         automaticallyImplyLeading: false,
         actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.people_outline_rounded),
+              tooltip: 'Manage Users',
+              onPressed: () => context.push(adminManageUsersPath),
+            ),
           IconButton(
             icon: const Icon(Icons.person_outline_rounded),
             onPressed: () => context.push(profilePath),
@@ -41,24 +53,27 @@ class OfficerHomeScreen extends ConsumerWidget {
           ),
           _FilterChips(filters: _filters, activeFilter: activeFilter),
           Expanded(
-            child: pendingAsync.when(
+            child: applicationsAsync.when(
               data: (applications) {
-                final filtered = activeFilter == null
+                final filtered = isApprovedFilter || activeFilter == null
                     ? applications
                     : applications
                           .where((a) => a.status == activeFilter)
                           .toList();
 
                 if (filtered.isEmpty) {
-                  return const EmptyState(
-                    message: 'No pending applications.',
+                  return EmptyState(
+                    message: isApprovedFilter
+                        ? 'No approved applications.'
+                        : 'No pending applications.',
                     icon: Icons.check_circle_outline_rounded,
                   );
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () async =>
-                      ref.invalidate(pendingApplicationsProvider),
+                  onRefresh: () async => isApprovedFilter
+                      ? ref.invalidate(approvedApplicationsProvider)
+                      : ref.invalidate(pendingApplicationsProvider),
                   child: ListView.separated(
                     padding: const EdgeInsets.all(spacing16),
                     itemCount: filtered.length,

@@ -84,20 +84,31 @@ class ReviewActionBar extends ConsumerWidget {
   }
 
   Future<void> _approve(BuildContext context, WidgetRef ref) async {
-    ref.read(reviewActionLoadingProvider.notifier).set(true);
-    ref.read(reviewActionErrorProvider.notifier).clear();
+    // Capture notifiers/service before the async gap so they remain usable
+    // even if this widget is unmounted after popping on success.
+    final loadingNotifier = ref.read(reviewActionLoadingProvider.notifier);
+    final errorNotifier = ref.read(reviewActionErrorProvider.notifier);
+    final reviewService = ref.read(officerReviewServiceProvider);
+    final notes = ref.read(officerNotesProvider);
+
+    loadingNotifier.set(true);
+    errorNotifier.clear();
     try {
-      await ref
-          .read(officerReviewServiceProvider)
-          .approve(
-            applicationId: application.applicationId,
-            notes: ref.read(officerNotesProvider),
-          );
+      await reviewService.approve(
+        applicationId: application.applicationId,
+        notes: notes,
+      );
       if (context.mounted) context.pop();
-    } catch (e) {
-      ref.read(reviewActionErrorProvider.notifier).set('Approval failed.');
+    } catch (e, s) {
+      Printer.error(
+        'Application approval failed',
+        tag: 'ReviewActionBar',
+        error: e,
+        stackTrace: s,
+      );
+      errorNotifier.set('Approval failed.');
     } finally {
-      ref.read(reviewActionLoadingProvider.notifier).set(false);
+      loadingNotifier.set(false);
     }
   }
 
@@ -108,30 +119,46 @@ class ReviewActionBar extends ConsumerWidget {
     );
 
     if (reason != null && reason.isNotEmpty && context.mounted) {
-      ref.read(reviewActionLoadingProvider.notifier).set(true);
-      ref.read(reviewActionErrorProvider.notifier).clear();
+      // Capture notifiers/service before the async gap so they remain usable
+      // even if this widget is unmounted after popping on success.
+      final loadingNotifier = ref.read(reviewActionLoadingProvider.notifier);
+      final errorNotifier = ref.read(reviewActionErrorProvider.notifier);
+      final reviewService = ref.read(officerReviewServiceProvider);
+
+      loadingNotifier.set(true);
+      errorNotifier.clear();
       try {
-        await ref
-            .read(officerReviewServiceProvider)
-            .reject(applicationId: application.applicationId, reason: reason);
+        await reviewService.reject(
+          applicationId: application.applicationId,
+          reason: reason,
+        );
         if (context.mounted) context.pop();
-      } catch (e) {
-        ref.read(reviewActionErrorProvider.notifier).set('Rejection failed.');
+      } catch (e, s) {
+        Printer.error(
+          'Application rejection failed',
+          tag: 'ReviewActionBar',
+          error: e,
+          stackTrace: s,
+        );
+        errorNotifier.set('Rejection failed.');
       } finally {
-        ref.read(reviewActionLoadingProvider.notifier).set(false);
+        loadingNotifier.set(false);
       }
     }
   }
 
   Future<void> _markBiometrics(BuildContext context, WidgetRef ref) async {
-    ref.read(reviewActionLoadingProvider.notifier).set(true);
+    // Capture notifier/service before the async gap so they remain usable
+    // even if this widget is unmounted after popping on success.
+    final loadingNotifier = ref.read(reviewActionLoadingProvider.notifier);
+    final reviewService = ref.read(officerReviewServiceProvider);
+
+    loadingNotifier.set(true);
     try {
-      await ref
-          .read(officerReviewServiceProvider)
-          .markBiometricsCaptured(application.applicationId);
+      await reviewService.markBiometricsCaptured(application.applicationId);
       if (context.mounted) context.pop();
     } finally {
-      ref.read(reviewActionLoadingProvider.notifier).set(false);
+      loadingNotifier.set(false);
     }
   }
 }

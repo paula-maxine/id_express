@@ -42,7 +42,7 @@ class OfficerReviewScreen extends ConsumerWidget {
                     children: [
                       _ApplicationHeader(application: application),
                       const SizedBox(height: spacing16),
-                      _NotesField(),
+                      _NotesField(application: application),
                       const SizedBox(height: spacing16),
                       ReviewDetailSection(application: application),
                       const SizedBox(height: spacing16),
@@ -134,9 +134,53 @@ class _ApplicationHeader extends StatelessWidget {
 }
 
 class _NotesField extends ConsumerWidget {
+  const _NotesField({required this.application});
+
+  final ApplicationModel application;
+
+  static const _lockedStatuses = {
+    ApplicationStatus.approved,
+    ApplicationStatus.biometricCaptured,
+    ApplicationStatus.idReady,
+    ApplicationStatus.completed,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isLocked = _lockedStatuses.contains(application.status);
+
+    if (isLocked) {
+      return Container(
+        width: double.infinity,
+        padding: padding16,
+        decoration: BoxDecoration(
+          color: surfaceWhite,
+          borderRadius: borderRadius8,
+          border: Border.all(color: borderLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Officer Notes',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: mediumGrey),
+            ),
+            const SizedBox(height: spacing4),
+            Text(
+              application.officerNotes.isEmpty
+                  ? 'No notes were added.'
+                  : application.officerNotes,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      );
+    }
+
     return TextFormField(
+      initialValue: application.officerNotes,
       onChanged: (v) => ref.read(officerNotesProvider.notifier).update(v),
       maxLines: 2,
       decoration: const InputDecoration(

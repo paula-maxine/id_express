@@ -3,11 +3,54 @@ import '../app_exporter.dart';
 
 part 'router.g.dart';
 
+/// Routes reachable without being logged in
+const _publicPaths = {
+  welcomePath,
+  loginPath,
+  registerPath,
+  otpVerifyPath,
+};
+
+/// Routes only applicants may access
+const _applicantOnlyPaths = {applicantHomePath};
+
+/// Routes only officers/supervisors/admins may access
+const _staffOnlyPaths = {
+  officerHomePath,
+  officerDashboardPath,
+  adminManageUsersPath,
+};
+
 /// Provides the app router
 @Riverpod(keepAlive: true)
 GoRouter goRouter(Ref ref) {
   return GoRouter(
     initialLocation: welcomePath,
+    redirect: (context, state) {
+      final firebaseUser = ref.watch(firebaseAuthUserProvider).value;
+      final location = state.matchedLocation;
+
+      if (firebaseUser == null) {
+        return _publicPaths.contains(location) ? null : welcomePath;
+      }
+
+      final currentUser = ref.watch(currentUserProvider).value;
+      if (currentUser == null) return null;
+
+      final isStaff = currentUser.role != UserRole.applicant;
+
+      if (_applicantOnlyPaths.contains(location) && isStaff) {
+        return officerHomePath;
+      }
+      if (_staffOnlyPaths.contains(location) && !isStaff) {
+        return applicantHomePath;
+      }
+      if (_publicPaths.contains(location)) {
+        return isStaff ? officerHomePath : applicantHomePath;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(path: welcomePath, builder: (_, _) => const WelcomeScreen()),
       GoRoute(path: loginPath, builder: (_, _) => const LoginScreen()),
@@ -74,6 +117,10 @@ GoRouter goRouter(Ref ref) {
           final id = state.pathParameters['id'] ?? '';
           return OfficerReviewScreen(applicationId: id);
         },
+      ),
+      GoRoute(
+        path: adminManageUsersPath,
+        builder: (_, _) => const ManageUsersScreen(),
       ),
     ],
   );

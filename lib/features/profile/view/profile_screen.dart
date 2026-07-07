@@ -204,6 +204,27 @@ class _AccountActions extends ConsumerWidget {
         ),
         const SizedBox(height: spacing8),
         _ActionTile(
+          icon: Icons.notifications_outlined,
+          label: 'Enable Notifications',
+          onTap: () async {
+            final messenger = ScaffoldMessenger.of(context);
+            final granted = await ref
+                .read(notificationServiceProvider)
+                .requestPermission();
+
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(
+                  granted
+                      ? 'Notifications enabled'
+                      : 'Notification permission denied',
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: spacing8),
+        _ActionTile(
           icon: Icons.logout_rounded,
           label: 'Sign Out',
           color: errorRed,

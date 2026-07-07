@@ -100,8 +100,13 @@ class ApplicationFormScreen extends ConsumerWidget {
   }
 
   Future<void> _submitApplication(BuildContext context, WidgetRef ref) async {
-    ref.read(formSubmittingProvider.notifier).set(true);
-    ref.read(formErrorProvider.notifier).clear();
+    // Capture notifiers before the async gap so they remain usable even if
+    // this widget is unmounted after navigating away on success.
+    final submittingNotifier = ref.read(formSubmittingProvider.notifier);
+    final errorNotifier = ref.read(formErrorProvider.notifier);
+
+    submittingNotifier.set(true);
+    errorNotifier.clear();
 
     try {
       final id = await ref
@@ -129,14 +134,18 @@ class ApplicationFormScreen extends ConsumerWidget {
         clearApplicationForm(ref);
         context.go('/application/$id');
       }
-    } catch (e) {
-      ref
-          .read(formErrorProvider.notifier)
-          .set(
-            'Submission failed. Please check your connection and try again.',
-          );
+    } catch (e, s) {
+      Printer.error(
+        'Application submission failed',
+        tag: 'ApplicationForm',
+        error: e,
+        stackTrace: s,
+      );
+      errorNotifier.set(
+        'Submission failed. Please check your connection and try again.',
+      );
     } finally {
-      ref.read(formSubmittingProvider.notifier).set(false);
+      submittingNotifier.set(false);
     }
   }
 }

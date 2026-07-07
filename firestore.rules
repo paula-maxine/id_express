@@ -1,0 +1,128 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helpers -------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Role of the requesting user, read from their /users/{uid} doc.
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isStaff() {
+      return isSignedIn() && userRole() in ['officer', 'supervisor', 'admin'];
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userRole() == 'admin';
+    }
+
+    // True when the incoming write does NOT change the `role` field.
+    function roleUnchanged() {
+      return !('role' in request.resource.data)
+          || request.resource.data.role == resource.data.role;
+    }
+
+    // --- users ---------------------------------------------------------------
+    // Doc id == Auth uid. Users read/manage their own doc; staff read all.
+    // Only admins may change a user's role (via assignRole).
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isStaff());
+
+      // A user may create their own doc (auto-provisioning on first login),
+      // but cannot self-assign a privileged role.
+      allow create: if isSignedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'applicant';
+
+      // Owner may update their own profile but not their role; admins may
+      // update anyone (including role changes).
+      allow update: if isAdmin()
+                    || (isSignedIn() && request.auth.uid == userId && roleUnchanged());
+
+      allow delete: if isAdmin();
+    }
+
+    // --- applications --------------------------------------------------------
+    // Applicants own rows keyed by applicant_id; staff review all.
+    match /applications/{appId} {
+      allow read: if isStaff()
+                  || (isSignedIn() && resource.data.applicant_id == request.auth.uid);
+
+      // Applicant creates their own application.
+      allow create: if isSignedIn()
+                    && request.resource.data.applicant_id == request.auth.uid;
+
+      // Applicant may edit their own application; staff may review any
+      // (set status, reviewed_by, notes, etc.).
+      allow update: if isStaff()
+                    || (isSignedIn() && resource.data.applicant_id == request.auth.uid);
+
+      allow delete: if isAdmin();
+    }
+
+    // --- appointments --------------------------------------------------------
+    match /appointments/{apptId} {
+      allow read: if isStaff()
+                  || (isSignedIn() && resource.data.applicant_id == request.auth.uid);
+
+      allow create: if isSignedIn()
+                    && request.resource.data.applicant_id == request.auth.uid;
+
+      allow update: if isStaff()
+                    || (isSignedIn() && resource.data.applicant_id == request.auth.uid);
+
+      allow delete: if isStaff()
+                    || (isSignedIn() && resource.data.applicant_id == request.auth.uid);
+    }
+
+    // --- documents -----------------------------------------------------------
+    // Tied to an application. Reuse the parent application's ownership.
+    match /documents/{docId} {
+      function parentApp() {
+        return get(/databases/$(database)/documents/applications/$(request.resource.data.application_id)).data;
+      }
+
+      allow read: if isStaff()
+                  || (isSignedIn()
+                      && get(/databases/$(database)/documents/applications/$(resource.data.application_id)).data.applicant_id == request.auth.uid);
+
+      allow create: if isStaff()
+                    || (isSignedIn() && parentApp().applicant_id == request.auth.uid);
+
+      allow update, delete: if isStaff()
+                    || (isSignedIn()
+                        && get(/databases/$(database)/documents/applications/$(resource.data.application_id)).data.applicant_id == request.auth.uid);
+    }
+
+    // --- notifications -------------------------------------------------------
+    // Owned by user_id. Users read their own; only the owner marks read.
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+
+      // Notifications are created server-side / by staff actions, not by
+      // arbitrary clients. Staff may create; owner may update (mark read).
+      allow create: if isStaff();
+      allow update: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // --- audit_logs ----------------------------------------------------------
+    // Append-only trail. Staff create; admins read. Never update/delete.
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isStaff();
+      allow update, delete: if false;
+    }
+
+    // Deny everything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

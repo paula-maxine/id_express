@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isStaff() {
+      return isSignedIn() && userRole() in ['officer', 'supervisor', 'admin'];
+    }
+
+    // Uploaded documents: documents/{uid}/{applicationId}/{file}
+    // The owning user reads/writes their own files; staff read all (to review).
+    match /documents/{uid}/{allPaths=**} {
+      allow read: if isStaff() || (isSignedIn() && request.auth.uid == uid);
+
+      // Owner may upload/overwrite their own files, capped at 20 MB.
+      allow write: if isSignedIn()
+                   && request.auth.uid == uid
+                   && request.resource.size < 20 * 1024 * 1024;
+    }
+
+    // Deny everything not explicitly matched.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

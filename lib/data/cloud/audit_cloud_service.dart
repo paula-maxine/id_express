@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/printer/printer.dart';
 import '../model/audit_log_model.dart';
 import 'app_exception.dart';
 
@@ -12,13 +13,25 @@ class AuditCloudService {
   Future<void> logAction(AuditLogModel log) async {
     try {
       await _firestore.collection('audit_logs').doc().set(log.toJson());
-    } on FirebaseException catch (e) {
+    } on FirebaseException catch (e, s) {
+      Printer.error(
+        'Failed to log action',
+        tag: 'AuditCloudService',
+        error: e,
+        stackTrace: s,
+      );
       throw FirestoreException(
         message: 'Failed to log action: ${e.message}',
         code: e.code,
         originalException: e,
       );
-    } catch (e) {
+    } catch (e, s) {
+      Printer.error(
+        'Failed to log action',
+        tag: 'AuditCloudService',
+        error: e,
+        stackTrace: s,
+      );
       throw FirestoreException(
         message: 'Failed to log action: $e',
         originalException: e,
@@ -63,13 +76,25 @@ class AuditCloudService {
             (doc) => AuditLogModel.fromJson(doc.data() as Map<String, dynamic>),
           )
           .toList();
-    } on FirebaseException catch (e) {
+    } on FirebaseException catch (e, s) {
+      Printer.error(
+        'Failed to fetch audit logs',
+        tag: 'AuditCloudService',
+        error: e,
+        stackTrace: s,
+      );
       throw FirestoreException(
         message: 'Failed to fetch audit logs: ${e.message}',
         code: e.code,
         originalException: e,
       );
-    } catch (e) {
+    } catch (e, s) {
+      Printer.error(
+        'Failed to fetch audit logs',
+        tag: 'AuditCloudService',
+        error: e,
+        stackTrace: s,
+      );
       throw FirestoreException(
         message: 'Failed to fetch audit logs: $e',
         originalException: e,
@@ -93,13 +118,25 @@ class AuditCloudService {
       return result.docs
           .map((doc) => AuditLogModel.fromJson(doc.data()))
           .toList();
-    } on FirebaseException catch (e) {
+    } on FirebaseException catch (e, s) {
+      Printer.error(
+        'Failed to fetch user audit logs',
+        tag: 'AuditCloudService',
+        error: e,
+        stackTrace: s,
+      );
       throw FirestoreException(
         message: 'Failed to fetch user audit logs: ${e.message}',
         code: e.code,
         originalException: e,
       );
-    } catch (e) {
+    } catch (e, s) {
+      Printer.error(
+        'Failed to fetch user audit logs',
+        tag: 'AuditCloudService',
+        error: e,
+        stackTrace: s,
+      );
       throw FirestoreException(
         message: 'Failed to fetch user audit logs: $e',
         originalException: e,

@@ -31,8 +31,56 @@
 
   <title>id_express</title>
   <link rel="manifest" href="manifest.json">
+
+  <script>
+    // Detect a new deployment and clear stale caches before loading the app.
+    //
+    // version.txt holds the current "version+build" string and is served
+    // with no-cache headers (see firebase.json). On a version mismatch we
+    // wipe the Cache API and unregister the old service worker so the freshly
+    // deployed bootstrap / main.dart.js are fetched instead of stale copies.
+    //
+    // Runs (and awaits) before flutter_bootstrap.js is injected below, so the
+    // stale service worker/cache can't race the fresh app load.
+    async function checkAndClearCache() {
+      try {
+        const response = await fetch("/version.txt?v=" + Date.now(), {
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+
+        const buildNumber = (await response.text()).trim();
+        if (!buildNumber) return;
+
+        const currentBuild = localStorage.getItem("buildNumber");
+        if (currentBuild === buildNumber) return;
+
+        console.log("[CACHE] New build detected:", buildNumber);
+
+        if ("caches" in window) {
+          const names = await caches.keys();
+          await Promise.all(names.map((name) => caches.delete(name)));
+          console.log("[CACHE] All caches cleared.");
+        }
+
+        if ("serviceWorker" in navigator) {
+          const registrations =
+            await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((reg) => reg.unregister()));
+        }
+
+        localStorage.setItem("buildNumber", buildNumber);
+      } catch (error) {
+        console.warn("[CACHE] Version check failed:", error);
+      } finally {
+        const script = document.createElement("script");
+        script.src = "flutter_bootstrap.js";
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    }
+  </script>
 </head>
-<body>
-  <script src="flutter_bootstrap.js" async></script>
+<body onload="checkAndClearCache()">
 </body>
 </html>

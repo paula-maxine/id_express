@@ -52,6 +52,7 @@ const String dailyAppointmentsPath = '/officer/daily-appointments';
 
 /// Admin paths
 const String adminDashboardPath = '/admin/dashboard';
+const String adminManageUsersPath = '/admin/manage-users';
 
 /// Settings paths
 const String settingsPath = '/settings';

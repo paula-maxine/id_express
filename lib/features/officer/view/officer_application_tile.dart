@@ -112,10 +112,11 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = status == ApplicationStatus.submitted
-        ? facebookBlue
-        : warningOrange;
-    final label = status == ApplicationStatus.submitted ? 'New' : 'In Review';
+    final (color, label) = switch (status) {
+      ApplicationStatus.submitted => (facebookBlue, 'New'),
+      ApplicationStatus.approved => (successGreen, 'Approved'),
+      _ => (warningOrange, 'In Review'),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(
