@@ -62,7 +62,7 @@ class WelcomeScreen extends ConsumerWidget {
 
                 // Info text
                 Text(
-                  'Powered by NIRA',
+                  'Powered by Maxine Technologies',
                   style: bodySmall.copyWith(
                     color: whiteColor.withValues(alpha: 0.7),
                   ),

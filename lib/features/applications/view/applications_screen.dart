@@ -52,7 +52,11 @@ class ApplicationsScreen extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) {
+                // print('Error loading applications: $e');
+                return Center(child: Text('Error: $e'));
+
+              },
             ),
           ),
         ],

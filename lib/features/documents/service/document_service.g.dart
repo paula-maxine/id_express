@@ -186,7 +186,7 @@ abstract class _$UploadProgress extends $Notifier<double?> {
   double? build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<double?, double?>;
     final element =
         ref.element
@@ -196,6 +196,6 @@ abstract class _$UploadProgress extends $Notifier<double?> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }

@@ -147,7 +147,7 @@ abstract class _$OfficerStatusFilter extends $Notifier<ApplicationStatus?> {
   ApplicationStatus? build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<ApplicationStatus?, ApplicationStatus?>;
     final element =
         ref.element
@@ -157,7 +157,7 @@ abstract class _$OfficerStatusFilter extends $Notifier<ApplicationStatus?> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 
@@ -206,7 +206,7 @@ abstract class _$ReviewActionLoading extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -216,7 +216,7 @@ abstract class _$ReviewActionLoading extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 
@@ -264,7 +264,7 @@ abstract class _$ReviewActionError extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -274,7 +274,7 @@ abstract class _$ReviewActionError extends $Notifier<String> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 
@@ -322,7 +322,7 @@ abstract class _$RejectionReason extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -332,7 +332,7 @@ abstract class _$RejectionReason extends $Notifier<String> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 
@@ -380,7 +380,7 @@ abstract class _$OfficerNotes extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -390,6 +390,6 @@ abstract class _$OfficerNotes extends $Notifier<String> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }

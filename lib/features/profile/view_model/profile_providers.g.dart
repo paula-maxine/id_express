@@ -52,7 +52,7 @@ abstract class _$ProfileSaving extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -62,7 +62,7 @@ abstract class _$ProfileSaving extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 
@@ -110,7 +110,7 @@ abstract class _$ProfileError extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -120,6 +120,6 @@ abstract class _$ProfileError extends $Notifier<String> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }

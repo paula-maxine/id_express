@@ -100,7 +100,7 @@ abstract class _$ApplicationStatusFilter extends $Notifier<ApplicationStatus?> {
   ApplicationStatus? build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<ApplicationStatus?, ApplicationStatus?>;
     final element =
         ref.element
@@ -110,7 +110,7 @@ abstract class _$ApplicationStatusFilter extends $Notifier<ApplicationStatus?> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 
