@@ -98,9 +98,13 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: bookAppointmentPath,
         builder: (_, state) {
-          final applicationId = state.extra as String? ?? '';
-          return BookAppointmentScreen(applicationId: applicationId);
+          final application = state.extra as ApplicationModel;
+          return BookAppointmentScreen(application: application);
         },
+      ),
+      GoRoute(
+        path: manageAppointmentsPath,
+        builder: (_, _) => const ManageAppointmentsScreen(),
       ),
       GoRoute(
         path: notificationsPath,

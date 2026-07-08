@@ -145,17 +145,29 @@ final class PendingApplicationsCountProvider
 String _$pendingApplicationsCountHash() =>
     r'f2039aeb599a543f2cb77dbf56ca8b974a99d276';
 
-/// Count of upcoming confirmed appointments
+/// Count of upcoming confirmed appointments.
+///
+/// Computed in memory from the appointment models so that the local overdue
+/// logic ([AppointmentModel.isUpcoming]) applies — a confirmed appointment
+/// whose date has passed is not counted as upcoming.
 
 @ProviderFor(upcomingAppointmentsCount)
 final upcomingAppointmentsCountProvider = UpcomingAppointmentsCountProvider._();
 
-/// Count of upcoming confirmed appointments
+/// Count of upcoming confirmed appointments.
+///
+/// Computed in memory from the appointment models so that the local overdue
+/// logic ([AppointmentModel.isUpcoming]) applies — a confirmed appointment
+/// whose date has passed is not counted as upcoming.
 
 final class UpcomingAppointmentsCountProvider
     extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
     with $FutureModifier<int>, $StreamProvider<int> {
-  /// Count of upcoming confirmed appointments
+  /// Count of upcoming confirmed appointments.
+  ///
+  /// Computed in memory from the appointment models so that the local overdue
+  /// logic ([AppointmentModel.isUpcoming]) applies — a confirmed appointment
+  /// whose date has passed is not counted as upcoming.
   UpcomingAppointmentsCountProvider._()
     : super(
         from: null,
@@ -182,4 +194,4 @@ final class UpcomingAppointmentsCountProvider
 }
 
 String _$upcomingAppointmentsCountHash() =>
-    r'a3495571eaac4760e10258af4bf4b4645a091287';
+    r'01a3ba2c9d87c650d65b334b06d3b7fa1f78ccca';

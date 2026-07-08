@@ -44,7 +44,7 @@
     // stale service worker/cache can't race the fresh app load.
     async function checkAndClearCache() {
       try {
-        const response = await fetch("/version.txt?v=" + Date.now(), {
+        const response = await fetch("/version.txt?v=2" + Date.now(), {
           cache: "no-store",
         });
         if (!response.ok) return;

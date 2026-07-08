@@ -1,5 +1,23 @@
 import '../../../app_exporter.dart';
 
+/// Maps a Firebase auth registration error code to a friendly message.
+String _registerErrorMessage(FirebaseAuthException e) {
+  switch (e.code) {
+    case 'email-already-in-use':
+      return 'An account already exists for that email. Try logging in.';
+    case 'invalid-email':
+      return 'That email address is not valid.';
+    case 'weak-password':
+      return 'That password is too weak. Use at least 6 characters.';
+    case 'operation-not-allowed':
+      return 'Email/password sign-up is not enabled.';
+    case 'network-request-failed':
+      return 'Network error. Check your connection and try again.';
+    default:
+      return e.message ?? 'Registration failed. Please try again.';
+  }
+}
+
 /// Register screen
 class RegisterScreen extends ConsumerStatefulWidget {
   /// Creates a register screen
@@ -41,7 +59,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         context.go(applicantHomePath);
       }
     } on FirebaseAuthException catch (e) {
-      errorNotifier.set(e.message ?? 'Registration failed');
+      errorNotifier.set(_registerErrorMessage(e));
+    } catch (e) {
+      // The auth account is rolled back on profile-write failure, so it is
+      // safe to tell the user to simply try again.
+      errorNotifier.set('Could not create your account. Please try again.');
+      Printer.error('Registration failed', tag: 'RegisterScreen', error: e);
     } finally {
       loadingNotifier.set(false);
     }

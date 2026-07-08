@@ -6,6 +6,7 @@ class AppointmentCard extends StatelessWidget {
   const AppointmentCard({
     required this.appointment,
     required this.onCancel,
+    this.onReschedule,
     super.key,
   });
 
@@ -15,17 +16,20 @@ class AppointmentCard extends StatelessWidget {
   /// Callback for cancel action
   final VoidCallback onCancel;
 
+  /// Callback to schedule a new appointment (shown when overdue)
+  final VoidCallback? onReschedule;
+
   @override
   Widget build(BuildContext context) {
+    final status = appointment.effectiveStatus;
     final isUpcoming = appointment.isUpcoming;
-    final isToday = appointment.isToday;
-    final color = appointment.isCancelled
-        ? mediumGrey
-        : isToday
-        ? warningOrange
-        : isUpcoming
-        ? facebookBlue
-        : successGreen;
+    final isToday = appointment.isToday && isUpcoming;
+    final color = switch (status) {
+      AppointmentStatus.cancelled => mediumGrey,
+      AppointmentStatus.overdue => errorRed,
+      AppointmentStatus.completed => successGreen,
+      AppointmentStatus.confirmed => isToday ? warningOrange : facebookBlue,
+    };
 
     return Container(
       padding: padding16,
@@ -80,6 +84,11 @@ class AppointmentCard extends StatelessWidget {
           const SizedBox(height: spacing12),
           const Divider(height: 1),
           const SizedBox(height: spacing12),
+          _InfoChip(
+            icon: Icons.assignment_outlined,
+            label: appointment.serviceType.serviceLabel,
+          ),
+          const SizedBox(height: spacing8),
           Row(
             children: [
               _InfoChip(
@@ -124,7 +133,7 @@ class AppointmentCard extends StatelessWidget {
               ),
             ),
           ],
-          if (isUpcoming && !appointment.isCancelled) ...[
+          if (isUpcoming) ...[
             const SizedBox(height: spacing12),
             SizedBox(
               width: double.infinity,
@@ -135,6 +144,24 @@ class AppointmentCard extends StatelessWidget {
                   side: const BorderSide(color: errorRed),
                 ),
                 child: const Text('Cancel Appointment'),
+              ),
+            ),
+          ],
+          if (status == AppointmentStatus.overdue && onReschedule != null) ...[
+            const SizedBox(height: spacing12),
+            Text(
+              'This appointment has passed. Schedule a new one to continue.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: errorRed),
+            ),
+            const SizedBox(height: spacing8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onReschedule,
+                icon: const Icon(Icons.event_repeat_rounded),
+                label: const Text('Schedule New Appointment'),
               ),
             ),
           ],
@@ -169,24 +196,28 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final status = appointment.effectiveStatus;
     final String label;
     final Color color;
 
-    if (appointment.isCancelled) {
-      label = 'Cancelled';
-      color = mediumGrey;
-    } else if (appointment.isCompleted) {
-      label = 'Completed';
-      color = successGreen;
-    } else if (appointment.isToday) {
-      label = 'Today';
-      color = warningOrange;
-    } else if (appointment.isUpcoming) {
-      label = 'Confirmed';
-      color = facebookBlue;
-    } else {
-      label = 'Past';
-      color = mediumGrey;
+    switch (status) {
+      case AppointmentStatus.cancelled:
+        label = 'Cancelled';
+        color = mediumGrey;
+      case AppointmentStatus.completed:
+        label = 'Completed';
+        color = successGreen;
+      case AppointmentStatus.overdue:
+        label = 'Overdue';
+        color = errorRed;
+      case AppointmentStatus.confirmed:
+        if (appointment.isToday) {
+          label = 'Today';
+          color = warningOrange;
+        } else {
+          label = 'Confirmed';
+          color = facebookBlue;
+        }
     }
 
     return Container(

@@ -21,7 +21,12 @@ class AuthService {
   /// Firestore instance
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  /// Sign in with email and password
+  /// Sign in with email and password.
+  ///
+  /// Authenticates against Firebase Auth, then simply *reads* the user's
+  /// profile from Firestore (looked up by their auth uid) and returns it.
+  /// Login is read-only: an existing profile is never overwritten. A profile
+  /// document is only created for a brand-new user that has no record yet.
   Future<UserModel?> signInWithEmailAndPassword({
     required String email,
     required String password,
@@ -32,71 +37,40 @@ class AuthService {
         password: password,
       );
 
-      if (userCredential.user == null) return null;
+      final authUser = userCredential.user;
+      if (authUser == null) return null;
 
-      // Fetch user data from Firestore
+      // Look the user up by their auth uid (the document id).
       final userDoc = await _firestore
           .collection('users')
-          .doc(userCredential.user!.uid)
+          .doc(authUser.uid)
           .get();
 
-      if (!userDoc.exists) {
-        final authUser = userCredential.user!;
-        final user = UserModel(
-          userId: authUser.uid,
-          email: authUser.email ?? email,
-          phoneNumber: authUser.phoneNumber ?? '',
-          displayName: authUser.displayName ?? '',
-          role: UserRole.applicant,
-          isEmailVerified: authUser.emailVerified,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
-        await _firestore
-            .collection('users')
-            .doc(user.userId)
-            .set(user.toMap());
-
-        return user;
+      if (userDoc.exists) {
+        // Found — return their stored info as-is. Do NOT write anything.
+        return UserModel.fromMap(userDoc.data() ?? {});
       }
 
-      // Doc exists — but self-heal if it is malformed. A doc missing its
-      // `user_id` (or with a mismatched one) makes every ownership rule
-      // (`applicant_id == request.auth.uid`) and role lookup fail, locking
-      // the user out under the deployed security rules. Repair the identity
-      // fields in place without ever escalating the role.
-      final data = userDoc.data() ?? {};
-      final storedUid = data['user_id'] as String?;
-      if (storedUid == null || storedUid != userCredential.user!.uid) {
-        final authUser = userCredential.user!;
-        final repair = <String, dynamic>{
-          'user_id': authUser.uid,
-          'email': (data['email'] as String?)?.isNotEmpty == true
-              ? data['email']
-              : authUser.email ?? email,
-          'updated_at': DateTime.now().toIso8601String(),
-        };
-        // Preserve an existing valid role; only default when absent/empty.
-        if ((data['role'] as String?)?.isNotEmpty != true) {
-          repair['role'] = UserRole.applicant.name;
-        }
-        await _firestore
-            .collection('users')
-            .doc(authUser.uid)
-            .set(repair, SetOptions(merge: true));
-
-        Printer.info(
-          'Repaired malformed user doc for ${authUser.uid}',
-          tag: 'AuthService',
-        );
-
-        return UserModel.fromMap({...data, ...repair});
-      }
-
-      return UserModel.fromMap(data);
+      // Genuinely new user with no profile yet — create one once.
+      final user = UserModel(
+        userId: authUser.uid,
+        email: authUser.email ?? email,
+        phoneNumber: authUser.phoneNumber ?? '',
+        displayName: authUser.displayName ?? '',
+        role: UserRole.applicant,
+        isEmailVerified: authUser.emailVerified,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await _firestore.collection('users').doc(user.userId).set(user.toMap());
+      return user;
     } on FirebaseAuthException catch (e, s) {
-      Printer.error('Sign in error', tag: 'AuthService', error: e, stackTrace: s);
+      Printer.error(
+        'Sign in error',
+        tag: 'AuthService',
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     } catch (e, s) {
       Printer.error(
@@ -123,11 +97,12 @@ class AuthService {
         password: password,
       );
 
-      if (userCredential.user == null) return null;
+      final authUser = userCredential.user;
+      if (authUser == null) return null;
 
       // Create user document in Firestore
       final user = UserModel(
-        userId: userCredential.user!.uid,
+        userId: authUser.uid,
         email: email,
         phoneNumber: phoneNumber,
         displayName: displayName,
@@ -136,7 +111,28 @@ class AuthService {
         updatedAt: DateTime.now(),
       );
 
-      await _firestore.collection('users').doc(user.userId).set(user.toMap());
+      try {
+        await _firestore
+            .collection('users')
+            .doc(user.userId)
+            .set(user.toMap());
+      } catch (e, s) {
+        // The auth account was created but we could not persist the profile.
+        // Roll it back so we don't leave an orphaned account that can log in
+        // but has no profile document.
+        Printer.error(
+          'Failed to write user profile; rolling back auth account',
+          tag: 'AuthService',
+          error: e,
+          stackTrace: s,
+        );
+        try {
+          await authUser.delete();
+        } catch (_) {
+          // Best-effort cleanup; ignore if it fails.
+        }
+        rethrow;
+      }
 
       return user;
     } on FirebaseAuthException catch (e, s) {

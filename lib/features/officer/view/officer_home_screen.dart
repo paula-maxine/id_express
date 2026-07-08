@@ -49,7 +49,13 @@ class OfficerHomeScreen extends ConsumerWidget {
               spacing16,
               spacing8,
             ),
-            child: const OfficerStatsCard(),
+            child: Column(
+              children: [
+                const _ViewBookingsCard(),
+                const SizedBox(height: spacing12),
+                const OfficerStatsCard(),
+              ],
+            ),
           ),
           _FilterChips(filters: _filters, activeFilter: activeFilter),
           Expanded(
@@ -89,6 +95,107 @@ class OfficerHomeScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Prominent entry point to the appointments management screen, shown at the
+/// top of the dashboard so staff can always reach bookings.
+class _ViewBookingsCard extends ConsumerWidget {
+  const _ViewBookingsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appointmentsAsync = ref.watch(allAppointmentsProvider);
+
+    // Count appointments still needing attention (upcoming or overdue).
+    final pending = appointmentsAsync.maybeWhen(
+      data: (list) => list
+          .where(
+            (a) =>
+                a.effectiveStatus == AppointmentStatus.confirmed ||
+                a.effectiveStatus == AppointmentStatus.overdue,
+          )
+          .length,
+      orElse: () => null,
+    );
+
+    return Material(
+      color: surfaceWhite,
+      borderRadius: borderRadius12,
+      child: InkWell(
+        borderRadius: borderRadius12,
+        onTap: () => context.push(manageAppointmentsPath),
+        child: Container(
+          padding: padding16,
+          decoration: BoxDecoration(
+            borderRadius: borderRadius12,
+            border: Border.all(color: borderLight),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(spacing12),
+                decoration: BoxDecoration(
+                  color: facebookBlue.withValues(alpha: 0.1),
+                  borderRadius: borderRadius8,
+                ),
+                child: Icon(
+                  Icons.event_note_rounded,
+                  color: facebookBlue,
+                  size: iconSizeMedium,
+                ),
+              ),
+              const SizedBox(width: spacing12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'View Bookings',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: spacing2),
+                    Text(
+                      pending == null
+                          ? 'Manage all appointments'
+                          : pending == 0
+                          ? 'No pending appointments'
+                          : '$pending pending appointment'
+                                '${pending == 1 ? '' : 's'}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: mediumGrey),
+                    ),
+                  ],
+                ),
+              ),
+              if (pending != null && pending > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: spacing8,
+                    vertical: spacing4,
+                  ),
+                  margin: const EdgeInsets.only(right: spacing8),
+                  decoration: BoxDecoration(
+                    color: warningOrange,
+                    borderRadius: borderRadius12,
+                  ),
+                  child: Text(
+                    '$pending',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: whiteColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              Icon(Icons.chevron_right_rounded, color: mediumGrey),
+            ],
+          ),
+        ),
       ),
     );
   }

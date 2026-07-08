@@ -34,6 +34,7 @@ const String uploadDocumentPath = '/upload-document';
 /// Appointment paths
 const String appointmentsPath = '/appointments';
 const String bookAppointmentPath = '/book-appointment';
+const String manageAppointmentsPath = '/manage-appointments';
 const String appointmentDetailPath = '/appointment/:id';
 
 /// Notification paths

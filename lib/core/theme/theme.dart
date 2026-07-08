@@ -54,9 +54,21 @@ class AppTheme {
           disabledForegroundColor: mediumGrey,
           textStyle: buttonText,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-          ),
+          shape: const StadiumBorder(),
+        ),
+      ),
+
+      //* Filled Button
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          backgroundColor: facebookBlue,
+          foregroundColor: textOnPrimary,
+          disabledBackgroundColor: lightGrey,
+          disabledForegroundColor: mediumGrey,
+          textStyle: buttonText,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: const StadiumBorder(),
         ),
       ),
 
@@ -66,6 +78,7 @@ class AppTheme {
           foregroundColor: facebookBlue,
           textStyle: semiBoldTextStyle.copyWith(fontSize: 14),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: const StadiumBorder(),
         ),
       ),
 
@@ -76,9 +89,7 @@ class AppTheme {
           side: const BorderSide(color: facebookBlue, width: 1.5),
           textStyle: semiBoldTextStyle.copyWith(fontSize: 14),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-          ),
+          shape: const StadiumBorder(),
         ),
       ),
 

@@ -1,5 +1,26 @@
 import '../../../app_exporter.dart';
 
+/// Maps a Firebase auth error code to a user-friendly message.
+String _authErrorMessage(FirebaseAuthException e) {
+  switch (e.code) {
+    case 'invalid-email':
+      return 'That email address is not valid.';
+    case 'user-disabled':
+      return 'This account has been disabled.';
+    case 'user-not-found':
+      return 'No account found for that email.';
+    case 'wrong-password':
+    case 'invalid-credential':
+      return 'Incorrect email or password.';
+    case 'too-many-requests':
+      return 'Too many attempts. Please try again later.';
+    case 'network-request-failed':
+      return 'Network error. Check your connection and try again.';
+    default:
+      return e.message ?? 'Login failed. Please try again.';
+  }
+}
+
 /// Login screen
 class LoginScreen extends ConsumerStatefulWidget {
   /// Creates a login screen
@@ -45,7 +66,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       }
     } on FirebaseAuthException catch (e) {
-      errorNotifier.set(e.message ?? 'Login failed');
+      errorNotifier.set(_authErrorMessage(e));
+    } catch (e) {
+      // Non-auth failures (e.g. reading the profile from Firestore) must not
+      // fail silently — surface a readable message.
+      errorNotifier.set('Could not sign you in. Please try again.');
+      Printer.error('Login failed', tag: 'LoginScreen', error: e);
     } finally {
       loadingNotifier.set(false);
     }

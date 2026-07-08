@@ -14,6 +14,7 @@ class AppointmentService {
   /// Books a new appointment
   Future<AppointmentModel> bookAppointment({
     required String applicationId,
+    required ApplicationType serviceType,
     required String centerId,
     required String centerName,
     required String centerAddress,
@@ -37,12 +38,14 @@ class AppointmentService {
       appointmentId: appointmentId,
       applicationId: applicationId,
       applicantId: uid,
+      serviceType: serviceType,
       centerId: centerId,
       centerName: centerName,
       centerAddress: centerAddress,
       appointmentDate: appointmentDate,
       timeSlot: timeSlot,
       queueNumber: queueNumber,
+      status: AppointmentStatus.confirmed,
       createdAt: DateTime.now(),
     );
 
@@ -56,13 +59,51 @@ class AppointmentService {
 
   /// Cancels an existing appointment
   Future<void> cancelAppointment(String appointmentId) async {
+    await _setStatus(appointmentId, AppointmentStatus.cancelled);
+  }
+
+  /// Marks an appointment as completed (done). Used by officers/admins.
+  Future<void> markAsDone(String appointmentId) async {
+    await _setStatus(appointmentId, AppointmentStatus.completed);
+  }
+
+  Future<void> _setStatus(
+    String appointmentId,
+    AppointmentStatus status,
+  ) async {
     await FirebaseFirestore.instance
         .collection('appointments')
         .doc(appointmentId)
         .update({
-          'is_cancelled': true,
+          'status': status.name,
+          'is_cancelled': status == AppointmentStatus.cancelled,
+          'is_completed': status == AppointmentStatus.completed,
           'updated_at': DateTime.now().toIso8601String(),
         });
+  }
+
+  /// Sweeps the given appointments and marks any confirmed-but-passed ones as
+  /// overdue in Firestore. Runs when an appointments page is visited (by the
+  /// applicant or any staff member). Returns the number updated.
+  Future<int> sweepOverdue(List<AppointmentModel> appointments) async {
+    final due = appointments
+        .where((a) => a.status == AppointmentStatus.confirmed && a.isOverdue)
+        .toList();
+    if (due.isEmpty) return 0;
+
+    final firestore = FirebaseFirestore.instance;
+    final batch = firestore.batch();
+    for (final a in due) {
+      batch.update(
+        firestore.collection('appointments').doc(a.appointmentId),
+        {
+          'status': AppointmentStatus.overdue.name,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
+    }
+    await batch.commit();
+    return due.length;
   }
 }
 
@@ -79,6 +120,18 @@ Stream<List<AppointmentModel>> userAppointments(Ref ref) {
   return FirebaseFirestore.instance
       .collection('appointments')
       .where('applicant_id', isEqualTo: uid)
+      .orderBy('appointment_date', descending: true)
+      .snapshots()
+      .map(
+        (s) => s.docs.map((d) => AppointmentModel.fromMap(d.data())).toList(),
+      );
+}
+
+/// Stream of all appointments (for officer/admin management)
+@riverpod
+Stream<List<AppointmentModel>> allAppointments(Ref ref) {
+  return FirebaseFirestore.instance
+      .collection('appointments')
       .orderBy('appointment_date', descending: true)
       .snapshots()
       .map(

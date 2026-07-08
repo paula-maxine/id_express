@@ -40,13 +40,13 @@ const _timeSlots = [
   '3:00 PM - 4:00 PM',
 ];
 
-/// Screen for booking a biometric capture appointment
+/// Screen for scheduling a booking against an approved application
 class BookAppointmentScreen extends ConsumerWidget {
   /// Creates the book appointment screen
-  const BookAppointmentScreen({required this.applicationId, super.key});
+  const BookAppointmentScreen({required this.application, super.key});
 
-  /// The application this appointment is for
-  final String applicationId;
+  /// The approved application this booking is for
+  final ApplicationModel application;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,7 +59,7 @@ class BookAppointmentScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Book Appointment'),
+        title: const Text('Schedule Booking'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
@@ -70,11 +70,31 @@ class BookAppointmentScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Autofilled, non-editable application details
+            _ReadOnlyField(
+              label: 'Application ID',
+              value: application.applicationId.toUpperCase(),
+              icon: Icons.tag_rounded,
+            ),
+            const SizedBox(height: spacing12),
+            _ReadOnlyField(
+              label: 'Service',
+              value: application.applicationType.serviceLabel,
+              icon: Icons.assignment_outlined,
+            ),
+            const SizedBox(height: spacing24),
             Text(
-              'Select Registration Centre',
+              'Location',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: spacing4),
+            Text(
+              'Select the registration centre for your appointment',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: mediumGrey),
             ),
             const SizedBox(height: spacing12),
             ..._centers.map(
@@ -142,7 +162,7 @@ class BookAppointmentScreen extends ConsumerWidget {
             if (date != null) ...[
               const SizedBox(height: spacing24),
               Text(
-                'Select Time Slot',
+                'Select Time',
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -195,7 +215,7 @@ class BookAppointmentScreen extends ConsumerWidget {
                           color: whiteColor,
                         ),
                       )
-                    : const Text('Confirm Appointment'),
+                    : const Text('Confirm Booking'),
               ),
             ),
           ],
@@ -223,7 +243,8 @@ class BookAppointmentScreen extends ConsumerWidget {
 
     try {
       await appointmentService.bookAppointment(
-        applicationId: applicationId,
+        applicationId: application.applicationId,
+        serviceType: application.applicationType,
         centerId: center.id,
         centerName: center.name,
         centerAddress: center.address,
@@ -231,11 +252,16 @@ class BookAppointmentScreen extends ConsumerWidget {
         timeSlot: slot,
       );
 
+      // Reset the transient booking selections for the next booking.
+      ref.read(selectedCenterProvider.notifier).clear();
+      ref.read(appointmentDateProvider.notifier).clear();
+      ref.read(selectedTimeSlotProvider.notifier).clear();
+
       if (context.mounted) {
         context.pop();
       }
       messenger.showSnackBar(
-        const SnackBar(content: Text('Appointment booked successfully!')),
+        const SnackBar(content: Text('Appointment scheduled successfully!')),
       );
     } catch (e, s) {
       Printer.error(
@@ -248,6 +274,58 @@ class BookAppointmentScreen extends ConsumerWidget {
     } finally {
       loadingNotifier.set(false);
     }
+  }
+}
+
+/// A locked, autofilled field displayed as read-only
+class _ReadOnlyField extends StatelessWidget {
+  const _ReadOnlyField({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding16,
+      decoration: BoxDecoration(
+        color: lightGrey.withValues(alpha: 0.4),
+        borderRadius: borderRadius8,
+        border: Border.all(color: borderLight),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: mediumGrey, size: iconSizeMedium),
+          const SizedBox(width: spacing12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: mediumGrey),
+                ),
+                const SizedBox(height: spacing2),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.lock_outline_rounded, size: 16, color: mediumGrey),
+        ],
+      ),
+    );
   }
 }
 

@@ -107,6 +107,52 @@ final class UserAppointmentsProvider
 
 String _$userAppointmentsHash() => r'321d23f2db2f64cfb1d9b370a36d3729313cd78e';
 
+/// Stream of all appointments (for officer/admin management)
+
+@ProviderFor(allAppointments)
+final allAppointmentsProvider = AllAppointmentsProvider._();
+
+/// Stream of all appointments (for officer/admin management)
+
+final class AllAppointmentsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AppointmentModel>>,
+          List<AppointmentModel>,
+          Stream<List<AppointmentModel>>
+        >
+    with
+        $FutureModifier<List<AppointmentModel>>,
+        $StreamProvider<List<AppointmentModel>> {
+  /// Stream of all appointments (for officer/admin management)
+  AllAppointmentsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'allAppointmentsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$allAppointmentsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<AppointmentModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<AppointmentModel>> create(Ref ref) {
+    return allAppointments(ref);
+  }
+}
+
+String _$allAppointmentsHash() => r'9d84f4bc3a86b6c1e07b42d1f7ba446c5d18cad9';
+
 /// Selected appointment center
 
 @ProviderFor(SelectedCenter)

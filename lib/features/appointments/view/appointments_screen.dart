@@ -1,13 +1,29 @@
 import '../../../app_exporter.dart';
 
 /// Screen listing all appointments for the current user
-class AppointmentsScreen extends ConsumerWidget {
+class AppointmentsScreen extends ConsumerStatefulWidget {
   /// Creates the appointments screen
   const AppointmentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
+}
+
+class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
+  bool _sweptOnce = false;
+
+  @override
+  Widget build(BuildContext context) {
     final appointmentsAsync = ref.watch(userAppointmentsProvider);
+
+    // When the appointments page is visited, mark any confirmed-but-passed
+    // appointments as overdue in the cloud. Runs once per screen visit.
+    appointmentsAsync.whenData((appointments) {
+      if (!_sweptOnce) {
+        _sweptOnce = true;
+        ref.read(appointmentServiceProvider).sweepOverdue(appointments);
+      }
+    });
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -21,10 +37,7 @@ class AppointmentsScreen extends ConsumerWidget {
       body: appointmentsAsync.when(
         data: (appointments) {
           if (appointments.isEmpty) {
-            return const EmptyState(
-              message: 'No appointments yet.\nBook one from your application.',
-              icon: Icons.event_busy_rounded,
-            );
+            return const _EmptyAppointments();
           }
           return ListView.separated(
             padding: const EdgeInsets.all(spacing16),
@@ -34,6 +47,10 @@ class AppointmentsScreen extends ConsumerWidget {
               appointment: appointments[i],
               onCancel: () =>
                   _confirmCancel(context, ref, appointments[i].appointmentId),
+              onReschedule: () => _goToApplication(
+                context,
+                appointments[i].applicationId,
+              ),
             ),
           );
         },
@@ -41,6 +58,11 @@ class AppointmentsScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
+  }
+
+  void _goToApplication(BuildContext context, String applicationId) {
+    // Take the user to the application so they can schedule a new booking.
+    context.push('/application/$applicationId');
   }
 
   Future<void> _confirmCancel(
@@ -74,5 +96,51 @@ class AppointmentsScreen extends ConsumerWidget {
           .read(appointmentServiceProvider)
           .cancelAppointment(appointmentId);
     }
+  }
+}
+
+/// Empty state directing the user to schedule from an approved application
+class _EmptyAppointments extends StatelessWidget {
+  const _EmptyAppointments();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(spacing32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.event_busy_rounded,
+              size: 64,
+              color: mediumGrey.withValues(alpha: 0.6),
+            ),
+            const SizedBox(height: spacing16),
+            Text(
+              'No appointments yet',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: spacing8),
+            Text(
+              'Open one of your approved applications and tap '
+              '"Schedule Booking" to book an appointment.',
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: mediumGrey),
+            ),
+            const SizedBox(height: spacing24),
+            FilledButton.icon(
+              onPressed: () => context.push(applicationsListPath),
+              icon: const Icon(Icons.folder_open_rounded),
+              label: const Text('View My Applications'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

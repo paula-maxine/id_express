@@ -45,7 +45,11 @@ Stream<int> pendingApplicationsCount(Ref ref) {
       .map((s) => s.docs.length);
 }
 
-/// Count of upcoming confirmed appointments
+/// Count of upcoming confirmed appointments.
+///
+/// Computed in memory from the appointment models so that the local overdue
+/// logic ([AppointmentModel.isUpcoming]) applies — a confirmed appointment
+/// whose date has passed is not counted as upcoming.
 @riverpod
 Stream<int> upcomingAppointmentsCount(Ref ref) {
   final uid = ref.watch(userIdProvider);
@@ -54,11 +58,11 @@ Stream<int> upcomingAppointmentsCount(Ref ref) {
   return FirebaseFirestore.instance
       .collection('appointments')
       .where('applicant_id', isEqualTo: uid)
-      .where(
-        'appointment_date',
-        isGreaterThanOrEqualTo: DateTime.now().toIso8601String(),
-      )
-      .where('status', isEqualTo: 'confirmed')
       .snapshots()
-      .map((s) => s.docs.length);
+      .map(
+        (s) => s.docs
+            .map((d) => AppointmentModel.fromMap(d.data()))
+            .where((a) => a.isUpcoming)
+            .length,
+      );
 }

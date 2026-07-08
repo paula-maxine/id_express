@@ -119,6 +119,8 @@ class ApplicationDetailScreen extends ConsumerWidget {
       applicationDetailProvider(applicationId),
     );
 
+    final application = applicationAsync.value;
+
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
@@ -128,6 +130,11 @@ class ApplicationDetailScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
       ),
+      // Pin the primary action to the bottom so the user never has to scroll
+      // to reach it. Only shown for the relevant application states.
+      bottomNavigationBar: application != null
+          ? _DetailActionBar(application: application)
+          : null,
       body: applicationAsync.when(
         data: (application) {
           if (application == null) {
@@ -140,6 +147,49 @@ class ApplicationDetailScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
+      ),
+    );
+  }
+}
+
+/// Pinned bottom action bar for the application detail screen.
+///
+/// Surfaces the primary action for the application's current state without
+/// requiring the user to scroll: schedule a booking when approved, or upload
+/// documents when a draft/rejected application still needs them.
+class _DetailActionBar extends StatelessWidget {
+  const _DetailActionBar({required this.application});
+
+  final ApplicationModel application;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget? action = switch (application.status) {
+      ApplicationStatus.approved => FilledButton.icon(
+        onPressed: () => context.push(bookAppointmentPath, extra: application),
+        icon: const Icon(Icons.event_available_rounded),
+        label: const Text('Schedule Booking'),
+      ),
+      ApplicationStatus.draft ||
+      ApplicationStatus.rejected => FilledButton.icon(
+        onPressed: () => context.push(documentsPath, extra: application),
+        icon: const Icon(Icons.upload_file_rounded),
+        label: const Text('Upload Documents'),
+      ),
+      _ => null,
+    };
+
+    if (action == null) return const SizedBox.shrink();
+
+    return Material(
+      color: surfaceWhite,
+      elevation: 8,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(spacing16),
+          child: SizedBox(width: double.infinity, child: action),
+        ),
       ),
     );
   }
@@ -242,18 +292,33 @@ class _DetailBody extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: spacing24),
-          if (application.status == ApplicationStatus.draft ||
-              application.status == ApplicationStatus.rejected)
-            SizedBox(
+          if (application.status == ApplicationStatus.approved) ...[
+            const SizedBox(height: spacing16),
+            Container(
               width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () =>
-                    context.push(documentsPath, extra: application),
-                icon: const Icon(Icons.upload_file_rounded),
-                label: const Text('Upload Documents'),
+              padding: padding16,
+              decoration: BoxDecoration(
+                color: successGreen.withValues(alpha: 0.07),
+                borderRadius: borderRadius8,
+                border: Border.all(color: successGreen.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: successGreen),
+                  const SizedBox(width: spacing12),
+                  Expanded(
+                    child: Text(
+                      'Your application is approved. Tap "Schedule Booking" '
+                      'below to book an appointment.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
               ),
             ),
+          ],
+          // Bottom padding so scrollable content clears the pinned action bar.
+          const SizedBox(height: spacing24),
         ],
       ),
     );

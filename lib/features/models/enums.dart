@@ -58,6 +58,21 @@ enum ApplicationStatus {
   cancelled,
 }
 
+/// Appointment lifecycle status enum
+enum AppointmentStatus {
+  /// Confirmed - booked and upcoming
+  confirmed,
+
+  /// Completed - marked as done by an officer/admin
+  completed,
+
+  /// Overdue - appointment date has passed without being completed
+  overdue,
+
+  /// Cancelled by the applicant
+  cancelled,
+}
+
 /// Document type enum
 enum DocumentType {
   /// Passport photo
