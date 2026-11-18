@@ -1,424 +1,356 @@
 # ID Express
 
-**ID Express** is a cross-platform National ID application and management system built with
-**Flutter** and **Firebase**. It is modelled on a NIRA-style national identity workflow
-(Uganda's National Identification and Registration Authority), letting citizens apply for and
-track a National ID online, while officers and administrators review applications, manage
-appointments, and oversee the whole process from a single app.
+ID Express is a Flutter + Firebase application that moves a national identity
+card application process online. It is modelled on the workflow of Uganda's
+National Identification and Registration Authority (NIRA): a citizen registers,
+fills in a four-step application, uploads supporting documents and books a
+service-centre appointment; staff review the application, approve or reject it
+with a reason, mark biometrics as captured and manage the appointment queue; an
+administrator assigns staff roles. Every role uses the same app, and the
+signed-in user's `role` field decides which home screen and routes they reach.
 
-The same codebase runs on **Android, iOS, Web, macOS, Windows, and Linux**.
-
----
-
-## Table of Contents
-
-- [What the app does](#what-the-app-does)
-- [User roles](#user-roles)
-- [Core workflows](#core-workflows)
-- [Tech stack](#tech-stack)
-- [Architecture](#architecture)
-- [Project structure — where everything lives](#project-structure--where-everything-lives)
-- [Feature-by-feature map](#feature-by-feature-map)
-- [Data model & Firestore collections](#data-model--firestore-collections)
-- [Routing](#routing)
-- [Getting started](#getting-started)
-- [Common commands](#common-commands)
-- [Building & shipping test builds](#building--shipping-test-builds)
-- [Security model](#security-model)
-- [Further documentation](#further-documentation)
+This repository is a single, self-contained unit: one Flutter client with its
+Firebase security rules, index definitions and release scripts. There is no
+separate backend service in this package. All reads and writes go directly from
+the client to Cloud Firestore and Cloud Storage, and authorization is enforced
+by `firestore.rules` and `storage.rules`.
 
 ---
 
-## What the app does
+## Reviewer Quick Start
 
-At a high level, ID Express digitises the National ID lifecycle:
+Recommended reading order:
 
-1. A **citizen (applicant)** signs up, fills in a multi-step application form, uploads the
-   required documents (birth certificate, passport photo, etc.), and books an in-person
-   appointment at a service centre.
-2. An **officer / supervisor** reviews submitted applications, approves or rejects them with a
-   reason, and manages the daily appointment queue.
-3. An **admin** manages users and roles across the system.
-4. Everyone gets **push + in-app notifications** as an application moves through its stages, and
-   every sensitive action is written to an **audit log**.
+1. This README
+2. [docs/SYSTEM_DEEP_DIVE.md](docs/SYSTEM_DEEP_DIVE.md) — how the system works
+3. [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) — where everything lives
+4. [docs/FEATURE_CATALOG.md](docs/FEATURE_CATALOG.md) — what it does
+5. [docs/TECHNICAL_HIGHLIGHTS.md](docs/TECHNICAL_HIGHLIGHTS.md) — the interesting engineering
+6. [docs/ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) — why it is built this way
+7. [docs/SENSITIVE_MATERIAL_REMOVED.md](docs/SENSITIVE_MATERIAL_REMOVED.md) — what was excluded and how to restore it
+8. [run_instruction.md](run_instruction.md) — full setup, build, run and troubleshooting
 
-Applications move through a clear status pipeline:
-
-```
-draft → submitted → underReview → approved → biometricPending → cardReady
-                                 ↘ rejected
-```
+The fastest code path to read is: `lib/main.dart` → `lib/routes/router.dart`
+→ `lib/features/auth/view_model/auth_providers.dart` →
+`lib/features/application_form/` → `lib/features/officer/` → `firestore.rules`.
 
 ---
 
-## User roles
+## Technology Stack
 
-Roles are defined in `lib/data/model/enums/user_role.dart` and drive both routing and Firestore
-security rules.
+Versions are the constraints declared in `pubspec.yaml`; resolved versions are
+in `pubspec.lock`.
 
-| Role         | Can do                                                                        |
-|--------------|-------------------------------------------------------------------------------|
-| `applicant`  | Register, submit/track applications, upload documents, book appointments      |
-| `officer`    | Review applications, approve/reject, manage daily appointments                |
-| `supervisor` | Everything an officer can do (elevated staff role)                            |
-| `admin`      | Everything above + manage users and assign roles                              |
+| Concern | Technology (constraint) |
+| --- | --- |
+| Language / SDK | Dart `^3.10.4` (Flutter SDK, version not pinned in the repo) |
+| State management | `flutter_riverpod ^3.2.1`, `riverpod_annotation ^4.0.2`, `riverpod_generator ^4.0.3` (code generation) |
+| Navigation | `go_router ^17.1.0`, router exposed as a generated Riverpod provider |
+| Authentication | `firebase_auth ^6.1.4` (email and password) |
+| Database | `cloud_firestore ^6.1.2` with offline persistence enabled |
+| File storage | `firebase_storage ^13.0.6` |
+| Push | `firebase_messaging ^16.1.1` (permission request and token storage only) |
+| Core | `firebase_core ^4.4.0` |
+| Media | `image_picker ^1.2.1` |
+| UI | Material 3, `google_fonts ^8.0.2`, `intl ^0.20.2` |
+| IDs | `uuid ^4.5.3` |
+| Serialization | `json_annotation ^4.11.0`, `json_serializable ^6.13.0` (legacy data layer only) |
+| Lints | `flutter_lints ^6.0.0`, `riverpod_lint ^3.1.3` |
+| Tests | `flutter_test` |
+| Android build | Android Gradle Plugin 9.0.1, Kotlin 2.3.20, Gradle 9.1.0, Java 17 |
+| iOS / macOS | iOS deployment target 15.0, macOS 10.15 |
 
-The router (`lib/routes/router.dart`) redirects users based on role: applicants land on the
-applicant home; officers/supervisors/admins land on the officer home. Staff-only and
-applicant-only routes are enforced with redirects.
-
----
-
-## Core workflows
-
-### Applicant journey
-`Welcome → Register / Login → Applicant Home → New Application (multi-step form) →
-Upload Documents → Book Appointment → Track status → Notifications`
-
-### Officer journey
-`Login → Officer Home (stats + queue) → Review Application (documents + details) →
-Approve / Reject (with reason) → Manage daily appointments`
-
-### Admin journey
-`Login → Officer Home → Manage Users (view users, assign/change roles)`
-
----
-
-## Tech stack
-
-| Concern            | Choice                                                        |
-|--------------------|--------------------------------------------------------------|
-| Framework          | Flutter (Dart SDK `^3.10.4`)                                  |
-| State management   | **Riverpod** (`flutter_riverpod` + `riverpod_generator`)     |
-| Navigation         | **go_router** (declarative, code-generated routes)           |
-| Backend            | **Firebase** — Auth, Cloud Firestore, Storage, Messaging     |
-| Serialization      | `json_serializable` / `json_annotation` (`*.g.dart` files)   |
-| Local persistence  | `sembast` + `path_provider` (offline sync cache)             |
-| Auth / security    | `local_auth` (biometrics), `flutter_secure_storage`          |
-| Media / files      | `image_picker`, `file_picker`, `cached_network_image`        |
-| UI                 | Material Design, `google_fonts`, `flutter_svg`               |
-| Connectivity       | `connectivity_plus`                                          |
-
-See `pubspec.yaml` for the full, versioned dependency list.
+Several declared packages are not imported by the live app (see
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)).
 
 ---
 
 ## Architecture
 
-ID Express follows **Feature-Driven Development (FDD)** with an **MVVM** pattern per feature.
+The app follows a feature-first layout with an MVVM split inside each feature.
+Feature services talk to Firebase directly; there is no repository layer in the
+live code path.
 
-Each feature under `lib/features/<feature>/` is self-contained and typically has:
-
-```
-features/<feature>/
-├── model/          # Feature-specific value objects (not the shared Firestore models)
-├── view/           # Widgets & screens (the "V" in MVVM)
-├── view_model/     # Riverpod providers holding state & logic (the "VM")
-├── service/        # Feature service — talks to the data/cloud layer
-└── exporter.dart   # Barrel file re-exporting the feature's public API
-```
-
-The layers, from UI down to the backend:
-
-```
-┌───────────────────────────────────────────────────────────┐
-│  View (Flutter widgets/screens)                            │  lib/features/*/view
-├───────────────────────────────────────────────────────────┤
-│  ViewModel (Riverpod providers)                            │  lib/features/*/view_model
-├───────────────────────────────────────────────────────────┤
-│  Feature Service (per-feature orchestration)               │  lib/features/*/service
-├───────────────────────────────────────────────────────────┤
-│  Cloud Services (Firestore/Storage/Auth wrappers)          │  lib/data/cloud
-├───────────────────────────────────────────────────────────┤
-│  Models + Repositories + Local sync                        │  lib/data/model, lib/data/repository, lib/data/local
-├───────────────────────────────────────────────────────────┤
-│  Firebase (Auth · Firestore · Storage · Messaging)         │  cloud
-└───────────────────────────────────────────────────────────┘
+```text
+                 ┌──────────────────────────────────────────────┐
+  Widgets        │ lib/features/<feature>/view/*.dart            │  ConsumerWidget / ConsumerStatefulWidget
+                 └───────────────┬──────────────────────────────┘
+                                 │ ref.watch / ref.read
+                 ┌───────────────▼──────────────────────────────┐
+  View models    │ lib/features/<feature>/view_model/*.dart      │  @riverpod StreamProviders over Firestore
+                 │                                              │  + small Notifier classes for form state
+                 └───────────────┬──────────────────────────────┘
+                 ┌───────────────▼──────────────────────────────┐
+  Services       │ lib/features/<feature>/service/*.dart         │  ApplicationService, OfficerReviewService,
+                 │                                              │  AppointmentService, DocumentService,
+                 │                                              │  AdminService, AuthService, NotificationService
+                 └───────────────┬──────────────────────────────┘
+                 ┌───────────────▼──────────────────────────────┐
+  Models         │ lib/features/models/*.dart                    │  hand-written fromMap / toMap, snake_case keys
+                 └───────────────┬──────────────────────────────┘
+                                 │ Firebase SDKs
+                 ┌───────────────▼──────────────────────────────┐
+  Firebase       │ Auth · Firestore (+ rules, indexes) · Storage │  firestore.rules, storage.rules,
+                 │ (+ rules) · Cloud Messaging                   │  firestore.indexes.json
+                 └──────────────────────────────────────────────┘
 ```
 
-> **Note on `.g.dart` files:** files ending in `.g.dart` are **generated** by `build_runner`
-> (Riverpod providers and JSON serialization). Never edit them by hand — regenerate with
-> `dart run build_runner build`.
-
-> **Barrel files (`exporter.dart`):** almost every folder has an `exporter.dart` that re-exports
-> its contents, so imports elsewhere stay short (e.g. `import '../app_exporter.dart';`).
+Routing is a single `GoRouter` built inside a `keepAlive` Riverpod provider. Its
+`redirect` callback watches the Firebase Auth stream and the signed-in user's
+Firestore profile, so a role change made by an administrator re-evaluates the
+guards without a restart. See [docs/SYSTEM_DEEP_DIVE.md](docs/SYSTEM_DEEP_DIVE.md).
 
 ---
 
-## Project structure — where everything lives
+## Repository Structure
 
-Top-level layout of the repository:
-
-```
+```text
 id_express/
-├── lib/                  # All Dart source (see below)
-├── android/ ios/ web/    # Platform runners (also macos/ windows/ linux/)
-├── macos/ windows/ linux/
-├── test/                 # Unit & widget tests
-├── scripts/              # Versioning & test-build deploy scripts (Dart)
-├── docs/                 # NIRA reference material & extra docs
-├── firebase.json         # Firebase project config (Firestore, Hosting, platforms)
-├── firestore.rules       # Firestore security rules
-├── firestore.indexes.json# Composite index definitions
-├── storage.rules         # Cloud Storage security rules
-├── pubspec.yaml          # Dependencies & Flutter config
-└── *.md                  # Additional design/status docs (see below)
+├── lib/
+│   ├── main.dart              entry point: error zones, Firebase init, Firestore persistence
+│   ├── app/                   root MaterialApp.router
+│   ├── app_exporter.dart      barrel export used by every feature file
+│   ├── core/                  theme, design tokens, extensions, validators, Printer logger, shared widgets
+│   ├── features/              the live application (10 feature folders + shared models/)
+│   ├── routes/                go_router config, role guards, path constants
+│   ├── data/                  earlier data layer; only the audit writer is used by the live app
+│   ├── global/ services/ utils/   earlier code, not imported by the live app
+│   └── firebase_options.dart  FlutterFire-generated client configuration
+├── test/                      2 test files
+├── scripts/                   version bump and test-build distribution (AppSend)
+├── firestore.rules            role-based Firestore authorization
+├── firestore.indexes.json     9 composite indexes backing the app's queries
+├── storage.rules              per-user document storage rules, 20 MB cap
+├── firebase.json              Firestore, Hosting and FlutterFire platform config
+├── android/ ios/ macos/ web/ windows/ linux/   platform runners
+└── docs/                      reviewer documentation suite
 ```
 
-### Inside `lib/`
-
-```
-lib/
-├── main.dart                 # Entry point: Firebase init, error handling, runApp
-├── firebase_options.dart     # Generated Firebase config (per platform)
-│
-├── app/
-│   └── id_express.dart       # Root MaterialApp.router widget
-│
-├── core/                     # Cross-cutting building blocks
-│   ├── constants/            # Spacing, dimens, padding, durations, strings, radii
-│   ├── extensions/           # Handy extensions on String, num, DateTime, Color
-│   ├── functions/            # Shared helper functions
-│   ├── printer/              # Structured console logger (Printer)
-│   ├── responsive/           # Responsive layout helpers
-│   ├── theme/                # Colors, text styles, ThemeData
-│   └── widgets/              # Reusable UI (AppButton, EmptyState, loaders, …)
-│
-├── data/                     # Data layer
-│   ├── cloud/                # Firestore/Storage/Auth service wrappers + AppException
-│   ├── local/                # sync_service.dart (offline caching via sembast)
-│   ├── model/                # Shared domain models (+ generated .g.dart)
-│   │   └── enums/            # UserRole, ApplicationStatus, DocumentType, Gender, …
-│   ├── repository/           # Application & Document repositories
-│   └── mock/                 # Mock data for development/testing
-│
-├── features/                 # Feature modules (MVVM, see Architecture)
-│   ├── auth/                 # Welcome, login, register
-│   ├── applicant_home/       # Applicant dashboard: services, quick stats
-│   ├── application_form/     # Multi-step application wizard
-│   ├── applications/         # Application list & detail
-│   ├── documents/            # Document upload & management
-│   ├── appointments/         # Book & view appointments
-│   ├── notifications/        # In-app notification centre
-│   ├── officer/              # Officer home, review screens, stats
-│   ├── admin/                # User & role management
-│   ├── profile/              # User profile
-│   └── models/               # Feature-side model/enum definitions
-│
-├── routes/                   # go_router setup, paths, error page (router.g.dart generated)
-├── providers/                # App-wide Riverpod providers (auth, router, services, etc.)
-├── global/                   # Alternate shared theme/widgets/constants set
-├── services/                 # Legacy top-level services (auth, firestore, storage)
-├── screens/                  # Legacy screen set (pre-feature-refactor)
-└── utils/                    # Utilities (e.g. tracking_utils.dart)
-```
-
-> **Heads-up on `screens/`, `services/`, `providers/`, `global/`:** the project has been
-> migrated toward the `features/` + `data/` structure. Some older `screens/`, top-level
-> `services/`, and `global/` files remain from the earlier architecture. When adding new
-> functionality, **prefer the `features/` + `data/cloud/` pattern**; treat `screens/` and
-> top-level `services/` as legacy.
+Details per directory: [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
 
 ---
 
-## Feature-by-feature map
+## Setup
 
-Use this table to jump straight to the code for a given capability.
-
-| Feature / capability          | Where it lives                                                    |
-|-------------------------------|-------------------------------------------------------------------|
-| App entry / Firebase init     | `lib/main.dart`                                                   |
-| Root app widget & theme       | `lib/app/id_express.dart`                                         |
-| Welcome / Login / Register    | `lib/features/auth/`                                              |
-| Applicant dashboard           | `lib/features/applicant_home/`                                    |
-| Start / fill an application   | `lib/features/application_form/` (steps: personal, address, family, review) |
-| Applications list & detail    | `lib/features/applications/`                                      |
-| Upload / manage documents     | `lib/features/documents/`                                         |
-| Appointments (book & view)    | `lib/features/appointments/`                                      |
-| Notifications                 | `lib/features/notifications/`                                     |
-| Officer review & approval     | `lib/features/officer/` (review screen, reject dialog, action bar)|
-| Admin — manage users/roles    | `lib/features/admin/`                                             |
-| User profile                  | `lib/features/profile/`                                           |
-| Firestore/Storage/Auth access | `lib/data/cloud/*_cloud_service.dart`                             |
-| Shared models & enums         | `lib/data/model/` and `lib/data/model/enums/`                     |
-| Offline sync cache            | `lib/data/local/sync_service.dart`                               |
-| Routing & guards              | `lib/routes/router.dart`, `lib/routes/paths.dart`                |
-| Theme / colors / typography   | `lib/core/theme/`                                                 |
-| Reusable widgets              | `lib/core/widgets/`, `lib/global/widgets/`                        |
-
-### Application-form steps
-The multi-step wizard lives in `lib/features/application_form/view/`:
-`personal_info_step.dart` → `address_info_step.dart` → `family_info_step.dart` →
-`review_step.dart`, coordinated by `application_form_screen.dart` with a `step_indicator.dart`.
-
-### Officer review
-`lib/features/officer/view/officer_review_screen.dart` renders the application, its documents and
-details (`review_detail_section.dart`, `review_section_card.dart`), with an action bar
-(`review_action_bar.dart`) and a rejection dialog (`reject_reason_dialog.dart`).
-
----
-
-## Data model & Firestore collections
-
-The app reads/writes the following Firestore collections (see `lib/data/cloud/`):
-
-| Collection        | Purpose                                        | Cloud service                          |
-|-------------------|------------------------------------------------|----------------------------------------|
-| `users`           | User profiles & roles                          | `user_cloud_service.dart`              |
-| `applications`    | ID applications and their status               | `application_cloud_service.dart`       |
-| `documents`       | Uploaded document metadata                     | `document_cloud_service.dart`          |
-| `appointments`    | Service-centre appointments                    | `appointment_cloud_service.dart`       |
-| `service_centres` | Physical service-centre records                | `service_centre_cloud_service.dart`    |
-| `audit_logs`      | Immutable log of sensitive actions             | `audit_cloud_service.dart`             |
-
-**Key enums** (`lib/data/model/enums/` and `lib/features/models/enums.dart`):
-
-- `UserRole` — `applicant`, `officer`, `supervisor`, `admin`
-- `ApplicationType` — `newRegistration`, `renewal`, `replacement`, `changeOfParticulars`
-- `ApplicationStatus` — `draft`, `submitted`, `underReview`, `approved`, `biometricPending`, `cardReady`, `rejected`
-- `DocumentType` — `birthCertificate`, `passportPhoto`, `supportingDocument`, `nationalId`
-- Plus `Gender`, `MaritalStatus`, `NotificationType`
-
-Composite indexes required by the app's queries are declared in `firestore.indexes.json`.
-
----
-
-## Routing
-
-All route paths are constants in `lib/routes/paths.dart`; the router and guards live in
-`lib/routes/router.dart` (`goRouterProvider`). A quick reference:
-
-| Path                     | Screen                    | Access        |
-|--------------------------|---------------------------|---------------|
-| `/welcome`               | Welcome                   | public        |
-| `/login`, `/register`    | Auth                      | public        |
-| `/applicant-home`        | Applicant dashboard       | applicant     |
-| `/application/new`       | New application form      | applicant     |
-| `/applications`          | Applications list         | applicant     |
-| `/application/:id`       | Application detail        | applicant     |
-| `/documents`             | Documents                 | applicant     |
-| `/appointments`          | Appointments              | applicant     |
-| `/book-appointment`      | Book appointment          | applicant     |
-| `/notifications`         | Notifications             | all           |
-| `/profile`               | Profile                   | all           |
-| `/officer-home`          | Officer dashboard         | staff         |
-| `/officer/review/:id`    | Officer review            | staff         |
-| `/admin/manage-users`    | Manage users              | admin/staff   |
-
-Unauthenticated users are redirected to `/welcome`; logged-in users are sent to the home screen
-that matches their role.
-
----
-
-## Getting started
-
-### Prerequisites
-
-- **Flutter SDK** with Dart `^3.10.4` (`flutter --version` to check)
-- A configured **Firebase project** (`google-services.json` for Android,
-  `GoogleService-Info.plist` for iOS, and `lib/firebase_options.dart`)
-- Platform toolchains for whatever target you're building (Android Studio / Xcode / etc.)
-
-### Setup
+Full instructions with versions and troubleshooting are in
+[run_instruction.md](run_instruction.md). In short:
 
 ```bash
-# 1. Install dependencies
 flutter pub get
-
-# 2. Generate code (Riverpod providers + JSON serialization)
-dart run build_runner build --delete-conflicting-outputs
-
-# 3. Run the app
+flutterfire configure          # point the app at your own Firebase project
+firebase deploy --only firestore:rules,firestore:indexes
 flutter run
 ```
 
-> Firebase is already wired up via `lib/firebase_options.dart` (project `id-express-paula`).
-> To point at your own Firebase project, run `flutterfire configure` to regenerate that file
-> and drop in your own platform config files.
+`storage.rules` is not referenced from `firebase.json`; deploy it from the
+Firebase console or add a `storage` entry first (see run_instruction.md).
 
----
-
-## Common commands
+Generated `*.g.dart` files are committed, so `build_runner` is only needed after
+changing an annotated provider or model:
 
 ```bash
-# Run on a connected device / emulator
-flutter run
-
-# Regenerate .g.dart files after changing models or providers
 dart run build_runner build --delete-conflicting-outputs
+```
 
-# Watch mode (regenerates on save)
-dart run build_runner watch --delete-conflicting-outputs
+## Environment
 
-# Analyze & format
+The app has no `.env` file and reads no `String.fromEnvironment` values. All
+environment-specific configuration is Firebase client configuration:
+
+| File | Generated by | Purpose |
+| --- | --- | --- |
+| `lib/firebase_options.dart` | `flutterfire configure` | Per-platform `FirebaseOptions` |
+| `android/app/google-services.json` | `flutterfire configure` or Firebase console | Android Firebase config |
+| `ios/Runner/GoogleService-Info.plist` | `flutterfire configure` or Firebase console | iOS Firebase config |
+| `firebase.json` (`flutter` block), `.firebaserc` | `flutterfire configure` / `firebase use` | Project and app IDs used by the CLIs |
+
+These files currently point at the original owner's Firebase project. The
+`AIza...` values in them are Firebase client identifiers (public by design and
+shipped in every client build), not secrets; access is controlled by the
+security rules. A new owner regenerates all of them for their own project. See
+[docs/SENSITIVE_MATERIAL_REMOVED.md](docs/SENSITIVE_MATERIAL_REMOVED.md).
+
+## Running
+
+```bash
+flutter run                    # default device
+flutter run -d chrome          # web
+flutter run -d <device-id>     # Android / iOS device or emulator
+```
+
+## Testing
+
+```bash
 flutter analyze
-dart format .
-
-# Run tests
 flutter test
-
-# Build release artifacts
-flutter build apk        # Android
-flutter build ios        # iOS
-flutter build web        # Web
 ```
 
----
+Current state (verified 2026-11-18 with Flutter 3.47.8 / Dart 3.13.7):
+`flutter analyze` reports no issues; `flutter build web`,
+`flutter build apk --debug` and `flutter build ios --debug --no-codesign`
+succeed; `flutter test` runs 2 tests, 1 passes
+(`App smoke test`) and 1 fails (`ApplicationModel JSON serialization roundtrip`,
+a pre-existing failure in the unused legacy model, documented in
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)).
 
-## Building & shipping test builds
-
-The `scripts/` directory contains Dart helpers for versioning and shipping test builds to
-testers via [AppSend](https://appsend.dev):
+## Building
 
 ```bash
-# Bump version, build, and upload — prints shareable install links
-dart scripts/deploy_testing.dart --build
-
-# Rebuild/reupload the current version without bumping
-dart scripts/deploy_testing.dart --build --no-bump
-
-# Bump the version only
-dart scripts/bump_version.dart
+flutter build apk --release --split-per-abi   # Android (as used by scripts/deploy_testing.dart)
+flutter build ipa --release                   # iOS (needs your own signing team)
+flutter build web                             # Web
 ```
 
-`bump_version.dart` also updates `web/version.txt`, a cache-busting token read by the web loader
-to detect new deployments. See `scripts/README.md` for full details.
+Test builds are distributed with `dart scripts/deploy_testing.dart --build`
+(bumps the version, builds, uploads to AppSend). See `scripts/README.md`.
 
 ---
 
-## Security model
+## Feature Walkthrough
 
-- **Authentication:** Firebase Auth (email/password). Every user has a `/users/{uid}` document
-  whose `role` field drives authorization.
-- **Firestore rules** (`firestore.rules`): helper functions gate access by role
-  (`isSignedIn`, `isStaff`, `isAdmin`). Users can read/manage their own `users` doc and staff can
-  read all; **only admins may change a user's role**. Applicants access their own applications,
-  documents, and appointments; staff can read/review across users.
-- **Storage rules** (`storage.rules`): user files are scoped to their `uid` to prevent
-  cross-user access.
-- **Audit logging:** sensitive actions are recorded in the `audit_logs` collection via
-  `audit_cloud_service.dart`.
-- **Offline support:** Firestore persistence is enabled in `main.dart` so cached data renders
-  instantly on cold start and reconciles with the server in the background.
+1. **Registration and sign-in.** Email/password via Firebase Auth. Registration
+   writes `/users/{uid}` with `role: applicant`; if the profile write fails the
+   new Auth account is deleted so no orphan account is left. Sign-in reads the
+   profile and only creates one if none exists.
+2. **Role routing.** The router sends applicants to `/applicant-home` and
+   officers, supervisors and admins to `/officer-home`, and blocks each group
+   from the other's routes.
+3. **Application.** Four steps (personal, family, address, review) for one of
+   four service types (new registration, renewal, replacement, change of
+   particulars). Previous NIN is required for every type except new
+   registration.
+   Submission writes an `applications` document with status `submitted`.
+4. **Tracking.** The applicant sees live status through a Firestore stream and a
+   six-stage timeline, the rejection reason if rejected, and a contextual
+   action: upload documents (draft or rejected) or book an appointment
+   (approved).
+5. **Documents.** Images are picked from the gallery, uploaded to
+   `documents/{uid}/{applicationId}/...` in Cloud Storage with live progress, and
+   recorded in the `documents` collection.
+6. **Review.** Staff see submitted and under-review applications oldest first,
+   open an application with its documents, approve with notes, reject with a
+   mandatory reason, or mark biometrics captured on an approved application.
+   Each action writes an `audit_logs` entry.
+7. **Appointments.** An approved applicant picks one of six centres, a weekday
+   1 to 90 days ahead and one of seven time slots; a queue number is generated.
+   Staff see all appointments and mark them done; past confirmed appointments
+   are shown as overdue immediately and persisted as overdue in a batch write.
+8. **Administration.** Admins list all users and change roles; each change is
+   audited.
+9. **Notifications and profile.** Users can opt in to push (the FCM token is
+   saved to their profile), read an in-app notification list with unread
+   counts, and sign out.
+
+Each feature is described in detail in [docs/FEATURE_CATALOG.md](docs/FEATURE_CATALOG.md);
+a bullet list is in [FEATURES.md](FEATURES.md).
+
+## Integrations
+
+| Service | Used for | Where |
+| --- | --- | --- |
+| Firebase Authentication | Email/password accounts | `lib/features/auth/service/auth_service.dart` |
+| Cloud Firestore | All application data, real-time streams | every `view_model/` and `service/` file |
+| Cloud Storage for Firebase | Document images | `lib/features/documents/service/document_service.dart` |
+| Firebase Cloud Messaging | Permission request and token storage | `lib/features/notifications/service/notification_service.dart` |
+| Firebase Hosting | Web hosting config with cache headers | `firebase.json` |
+| AppSend | Test-build distribution (no API key) | `scripts/deploy_testing.dart` |
+| Google Fonts | Typography (fetched at runtime) | `lib/core/theme/text_styles.dart` |
+
+## Security
+
+- Authorization lives in `firestore.rules`. Role is read from the caller's
+  `/users/{uid}` document. Users cannot create their own profile with any role
+  other than `applicant`, and only admins may change a `role` field.
+- Applicants can read and write only documents whose `applicant_id` is their
+  uid; document metadata inherits ownership from its parent application.
+- `audit_logs` is append-only: staff create, admins read, nobody updates or
+  deletes.
+- `notifications` can only be created by staff, and read or marked read only by
+  their owner.
+- `storage.rules` scopes uploads to `documents/{uid}/...`, lets staff read all
+  documents, and caps uploads at 20 MB.
+- Everything not matched is denied in both rule files.
+
+Known gaps (for example, an applicant can update any field of their own
+application, including `status`) are listed in
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md).
+
+## Database
+
+Cloud Firestore, top-level collections only, `snake_case` field names,
+timestamps stored as ISO-8601 strings:
+
+| Collection | Key fields | Written by |
+| --- | --- | --- |
+| `users` | `user_id`, `role`, `email`, `phone_number`, `display_name`, `fcm_token` | AuthService, AdminService, NotificationService |
+| `applications` | `application_id`, `applicant_id`, `application_type`, `status`, personal/family/address fields, `reviewed_by`, `officer_notes`, `rejection_reason` | ApplicationService |
+| `documents` | `document_id`, `application_id`, `applicant_id`, `document_type`, `file_url` | DocumentService |
+| `appointments` | `appointment_id`, `application_id`, `applicant_id`, `center_id`, `appointment_date`, `time_slot`, `queue_number`, `status` | AppointmentService |
+| `notifications` | `user_id`, `type`, `title`, `message`, `is_read`, `created_at` | not written by this app (read only) |
+| `audit_logs` | `user_id`, `user_role`, `action`, `target_collection`, `target_doc_id`, `details`, `timestamp` | OfficerReviewService, AdminService |
+
+Composite indexes for every multi-field query are declared in
+`firestore.indexes.json`.
 
 ---
 
-## Further documentation
+## What Is Not Included
 
-The repo includes deeper reference docs (some predate the feature-driven refactor — the code is
-the source of truth where they disagree):
+- No backend or Cloud Functions. Nothing in this repository creates
+  `notifications` documents or sends push messages; a server-side sender would
+  have to be added.
+- No sample data or seed scripts. A fresh project starts empty.
+- No real user data. Earlier AI-tool prompts, thesis reference files, a
+  plaintext credentials file and stale generated status documents were removed;
+  see [docs/SENSITIVE_MATERIAL_REMOVED.md](docs/SENSITIVE_MATERIAL_REMOVED.md).
+- No release signing configuration (Android release uses the debug key, as in
+  the Flutter template).
 
-| Doc                          | Contents                                             |
-|------------------------------|------------------------------------------------------|
-| `ARCHITECTURE.md`            | Original app-flow & data-flow diagrams               |
-| `DATABASE_SCHEMA.md`         | Firestore schema details                             |
-| `FILE_STRUCTURE.md`          | Detailed file-structure notes                        |
-| `GETTING_STARTED.md` / `QUICK_START.md` / `SETUP_GUIDE.md` | Onboarding & setup guides       |
-| `IMPLEMENTATION_STATUS.md`   | Current implementation status                        |
-| `SCREEN_IMPLEMENTATION_GUIDE.md` | Screen-by-screen build guide                     |
-| `DOCUMENTATION_INDEX.md`     | Index of all documentation                           |
-| `docs/`                      | NIRA reference material                              |
+## What the Buyer Must Configure
 
----
+- **Development:** Flutter SDK supporting Dart `^3.10.4`; Xcode for Apple
+  targets; Android SDK and Java 17 for Android.
+- **Database:** a Firebase project with Cloud Firestore; deploy
+  `firestore.rules` and `firestore.indexes.json`.
+- **Authentication:** enable the Email/Password provider; create the first admin
+  by editing that user's `role` to `admin` in the Firestore console (the rules
+  prevent self-promotion).
+- **Cloud infrastructure:** run `flutterfire configure` to regenerate
+  `lib/firebase_options.dart`, `android/app/google-services.json`,
+  `ios/Runner/GoogleService-Info.plist` and the `firebase.json` `flutter` block;
+  update `.firebaserc`.
+- **Storage:** enable Cloud Storage and deploy `storage.rules` (from the
+  console, or after adding a `storage` entry to `firebase.json`, which does not
+  reference it today).
+- **Notifications:** for iOS push, add an APNs key in the Firebase console and the
+  Push Notifications capability in Xcode; add a server-side sender if
+  notifications are wanted.
+- **Production deployment:** replace the `com.example` application IDs, the Apple
+  development team and the debug release signing; for web, `firebase deploy
+  --only hosting`.
 
-*ID Express — bringing the National ID process online, end to end.*
+## Known Limitations
+
+Summarised from [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md): an inactive legacy
+data layer sits beside the live feature code; one of two tests fails; no
+in-app path creates notifications; document upload uses `dart:io` and so does
+not work on web; centres and time slots are hard-coded with no capacity check;
+"Change Password", OTP verification and the officer "View" document button are
+placeholders; macOS and Linux Firebase options are unconfigured.
+
+## Documentation Index
+
+| Document | Contents |
+| --- | --- |
+| [FEATURES.md](FEATURES.md) | Bullet list of implemented features and source-file count |
+| [run_instruction.md](run_instruction.md) | Prerequisites, configuration, commands, deployment, troubleshooting |
+| [CHANGELOG.md](CHANGELOG.md) | Change history |
+| [scripts/README.md](scripts/README.md) | Version bump and test-build distribution scripts |
+| [docs/SYSTEM_DEEP_DIVE.md](docs/SYSTEM_DEEP_DIVE.md) | Architecture, data flow, workflows, failure handling, security |
+| [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) | Directory-by-directory map |
+| [docs/FEATURE_CATALOG.md](docs/FEATURE_CATALOG.md) | Every feature with implementation and business rules |
+| [docs/TECHNICAL_HIGHLIGHTS.md](docs/TECHNICAL_HIGHLIGHTS.md) | The strongest engineering in the codebase |
+| [docs/ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) | Observed decisions, evidence and trade-offs |
+| [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | Bugs, technical debt, limitations |
+| [docs/SENSITIVE_MATERIAL_REMOVED.md](docs/SENSITIVE_MATERIAL_REMOVED.md) | Register of removed and sanitized material |
+| [docs/SUBMISSION_MANIFEST.md](docs/SUBMISSION_MANIFEST.md) | Inventory of this submission |
